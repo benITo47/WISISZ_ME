@@ -1,0 +1,73 @@
+
+# 🟢 NODE / FRONTEND (dotyczy wszystkich podfolderów)
+**/node_modules/
+**/dist/
+**/build/
+**/.npm/
+**/.npmrc
+**/.pnpm-debug.log
+**/yarn.lock
+**/package-lock.json
+
+# Vite / Webpack / Parcel / Next.js cache
+**/.vite/
+**/.next/
+**/.vercel/
+**/out/
+**/.cache/
+**/*.log
+**/*.gz
+
+# Environment files (React, Node.js)
+**/.env
+**/.env.local
+**/.env.development
+**/.env.production
+**/.env.test
+
+# Coverage reports
+**/coverage/
+**/lcov-report/
+
+# 🟠 JAVA / BACKEND (dotyczy wszystkich podfolderów)
+**/.idea/
+**/*.iml
+**/.project
+**/.classpath
+**/.settings/
+
+# Gradle
+**/.gradle/
+**/build/
+**/out/
+**/bin/
+**/gradle-app.setting
+**/gradlew
+**/gradlew.bat
+
+# Maven
+**/target/
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/dependency-reduced-pom.xml
+**/release.properties
+
+# Spring Boot logs & artifacts
+**/logs/
+**/*.log
+**/*.war
+**/*.jar
+
+# Lombok
+**/*.lombok.config
+
+# 🟡 COMMON SYSTEM FILES
+**/.DS_Store
+**/Thumbs.db
+**/.vscode/
+**/*.swp
+**/*.swo
+**/*.bak
+
+# Docker
+**/docker-compose.override.yml
