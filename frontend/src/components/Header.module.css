@@ -1,0 +1,127 @@
+.headerContainer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 9px;
+  background-color: #0e0e0e;
+  height: 75px;
+  width: 100%;
+  color: white;
+  border-bottom: 2px solid #fff;
+  z-index: 10;
+  position: relative;
+}
+
+.headerLogo {
+  margin: 0;
+  font-size: 1.8em;
+  font-family: "Roboto", sans-serif;
+}
+
+.headerLogoLink {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.headerLogoLink:hover {
+  opacity: 0.6;
+  color: #e2f989;
+}
+
+.headerMenuIcon {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.headerMenuLine {
+  width: 25px;
+  height: 3px;
+  background-color: white;
+  margin: 4px 0;
+  transition: 0.3s;
+}
+
+.headerNavigation {
+  display: flex;
+  gap: 24px;
+  flex-direction: row;
+  overflow: visible;
+}
+
+@media (max-width: 768px) {
+  .headerMenuIcon {
+    display: flex;
+  }
+
+  .headerNavigation {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 75px;
+    width: 100%;
+    background-color: #0e0e0e;
+    padding: 10px 0;
+    text-align: center;
+    gap: 15px;
+    z-index: -10;
+    opacity: 0;
+    max-height: 0px;
+    pointer-events: none;
+  }
+
+  .headerNavigation[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
+    max-height: 300px;
+    transition:
+      max-height 0.4s ease,
+      opacity 0.4s ease;
+  }
+
+  .headerNavLink {
+    padding: 10px;
+  }
+}
+
+.headerNavLink {
+  text-decoration: none;
+  color: white;
+  background-image: linear-gradient(to right, #e2f989, #e2f989 50%, #fff 50%);
+  background-size: 200% 100%;
+  background-position: -100%;
+  display: inline-block;
+  padding: 5px 0;
+  position: relative;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease-in-out;
+  font-size: 1.2em;
+  font-family: "ClashDisplay-Regular", sans-serif;
+}
+
+.headerNavLink:before {
+  content: "";
+  background: #e2f989;
+  display: block;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+.headerNavLink:hover {
+  background-position: 0;
+}
+
+.headerNavLink:hover::before {
+  width: 100%;
+}
