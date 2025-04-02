@@ -1,8 +1,10 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+:root {
+  --primary-color: #0e0e0e;
+  /* --primary-hover: #0056b3;*/
+  --secondary-color: #efefef;
+  --accent-color: #e2f989;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
 }
 
 .logo {
@@ -31,12 +33,4 @@
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

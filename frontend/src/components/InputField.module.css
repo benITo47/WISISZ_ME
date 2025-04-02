@@ -1,0 +1,99 @@
+.inputContainer {
+  position: relative;
+  width: 100%;
+  height: fit-content;
+  max-width: var(--input-width, 320px);
+  font-family: var(--font-family, sans-serif);
+  border: 1px solid white;
+  border-radius: 12px;
+  background-color: var(--background-color, #0e0e0e);
+}
+
+.inputField {
+  width: 100%;
+  height: 48px;
+  padding: 6px 6px 4px 6px;
+  font-size: 16px;
+  color: var(--text-color, #ffffff);
+  background: transparent;
+  border: none;
+}
+
+.inputField:focus {
+  outline: none;
+}
+
+.floatingLabel {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  padding: 0;
+  z-index: 1;
+}
+
+.labelText {
+  font-size: 16px;
+  color: var(--text-color, #ffffff);
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.inputField:focus + .floatingLabel,
+.floatingLabel.floating {
+  top: -10px;
+  left: 12px;
+  padding: 0 6px;
+}
+
+.inputField:hover + .floatingLabel .labelText,
+.floatingLabel.floating .labelText {
+  color: var(--accent-color, #e2f989);
+  background-color: transparent;
+}
+
+.inputField:hover + .floatingLabel::after,
+.floatingLabel.floating::after {
+  transform: scaleX(1);
+}
+
+.inputField:focus + .floatingLabel::after,
+.floatingLabel.floating::after {
+  transform: scaleX(0);
+}
+
+.inputField:focus + .floatingLabel .labelText,
+.floatingLabel.floating .labelText {
+  font-size: 13px;
+  color: var(--accent-color, #e2f989);
+  background-color: transparent;
+}
+
+/* animated bottom border */
+.floatingLabel::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 100%;
+  background-color: transparent;
+  border-bottom: 1px solid var(--accent-color, #e2f989);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+/* Error message */
+.errorWrapper {
+  min-height: 18px;
+  padding-left: 4px;
+  margin-bottom: 4px;
+}
+
+.errorMessage {
+  color: #ff6b6b;
+  font-size: 12px;
+}
