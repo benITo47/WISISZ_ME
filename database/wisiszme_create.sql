@@ -1,6 +1,4 @@
 -- tables
-create schema if not exists wisiszme;
-set search_path to wisiszme;
 
 -- Table: category
 create table wisiszme.category
