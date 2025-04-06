@@ -31,4 +31,8 @@ public class PersonService {
     public Optional<List<Team>> getPersonTeams(Integer personId) {
         return personRepository.findById(personId).map(p -> p.getTeams());
     }
+
+    public Person savePerson(Person person) {
+        return personRepository.save(person);
+    }
 }
