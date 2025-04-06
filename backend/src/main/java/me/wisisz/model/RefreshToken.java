@@ -1,12 +1,10 @@
 package me.wisisz.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.time.OffsetDateTime;
 
 @Entity
-@Data
 @Table(name = "refresh_token", schema = "wisiszme")
 public class RefreshToken {
 
@@ -30,4 +28,52 @@ public class RefreshToken {
 
     @Column(name = "is_revoked", nullable = false)
     private Boolean isRevoked;
+
+    public Integer getTokenId() {
+        return tokenId;
+    }
+
+    public void setTokenId(Integer tokenId) {
+        this.tokenId = tokenId;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public OffsetDateTime getIssuedAt() {
+        return issuedAt;
+    }
+
+    public void setIssuedAt(OffsetDateTime issuedAt) {
+        this.issuedAt = issuedAt;
+    }
+
+    public OffsetDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(OffsetDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public Boolean getIsRevoked() {
+        return isRevoked;
+    }
+
+    public void setIsRevoked(Boolean isRevoked) {
+        this.isRevoked = isRevoked;
+    }
 }

@@ -1,12 +1,12 @@
 package me.wisisz.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
-@Data
 @Table(name = "person", schema = "wisiszme")
 public class Person {
 
@@ -28,5 +28,58 @@ public class Person {
     private String passwordHash;
 
     @OneToMany(mappedBy = "person")
+    @JsonIgnore
     private List<TeamMember> memberships;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getFname() {
+        return fname;
+    }
+
+    public void setFname(String fname) {
+        this.fname = fname;
+    }
+
+    public String getLname() {
+        return lname;
+    }
+
+    public void setLname(String lname) {
+        this.lname = lname;
+    }
+
+    public String getEmailAddr() {
+        return emailAddr;
+    }
+
+    public void setEmailAddr(String emailAddr) {
+        this.emailAddr = emailAddr;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public List<TeamMember> getMemberships() {
+        return memberships;
+    }
+
+    public void setMemberships(List<TeamMember> memberships) {
+        this.memberships = memberships;
+    }
+
+    public List<Team> getTeams() {
+        return memberships.stream().map(m -> m.getTeam()).toList();
+    }
 }

@@ -21,12 +21,4 @@ public class CategoryService {
     public Optional<Category> getCategoryById(Integer categoryId) {
         return categoryRepository.findById(categoryId);
     }
-
-    public Category saveCategory(Category category) {
-        return categoryRepository.save(category);
-    }
-
-    public void deleteCategory(Integer categoryId) {
-        categoryRepository.deleteById(categoryId);
-    }
 }

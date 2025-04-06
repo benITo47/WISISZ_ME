@@ -1,12 +1,12 @@
 package me.wisisz.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
-@Data
 @Table(name = "team", schema = "wisiszme")
 public class Team {
 
@@ -19,5 +19,30 @@ public class Team {
     private String teamName;
 
     @OneToMany(mappedBy = "team")
-    private List<TeamMember> members;
+    @JsonIgnore
+    private List<TeamMember> memberships;
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
+    }
+
+    public List<TeamMember> getMemberships() {
+        return memberships;
+    }
+
+    public void setMemberships(List<TeamMember> memberships) {
+        this.memberships = memberships;
+    }
 }

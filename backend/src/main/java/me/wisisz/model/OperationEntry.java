@@ -1,12 +1,10 @@
 package me.wisisz.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Entity
-@Data
 @Table(name = "operation_entry", schema = "wisiszme")
 public class OperationEntry {
 
@@ -25,4 +23,36 @@ public class OperationEntry {
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
+
+    public Integer getEntryId() {
+        return entryId;
+    }
+
+    public void setEntryId(Integer entryId) {
+        this.entryId = entryId;
+    }
+
+    public Operation getOperation() {
+        return operation;
+    }
+
+    public void setOperation(Operation operation) {
+        this.operation = operation;
+    }
+
+    public TeamMember getTeamMember() {
+        return teamMember;
+    }
+
+    public void setTeamMember(TeamMember teamMember) {
+        this.teamMember = teamMember;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 }

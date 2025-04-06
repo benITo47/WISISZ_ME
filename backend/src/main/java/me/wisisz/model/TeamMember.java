@@ -1,12 +1,10 @@
 package me.wisisz.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Entity
-@Data
 @Table(name = "team_member", schema = "wisiszme")
 public class TeamMember {
 
@@ -25,4 +23,36 @@ public class TeamMember {
 
     @Column(name = "default_share", nullable = false)
     private BigDecimal defaultShare;
+
+    public Integer getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(Integer memberId) {
+        this.memberId = memberId;
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
+
+    public BigDecimal getDefaultShare() {
+        return defaultShare;
+    }
+
+    public void setDefaultShare(BigDecimal defaultShare) {
+        this.defaultShare = defaultShare;
+    }
 }
