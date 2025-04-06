@@ -24,6 +24,10 @@ public class PersonService {
         return personRepository.findById(personId);
     }
 
+    public Optional<Person> getPersonByEmail(String emailAddr) {
+        return personRepository.findByEmailAddr(emailAddr);
+    }
+
     public Optional<List<Team>> getPersonTeams(Integer personId) {
         return personRepository.findById(personId).map(p -> p.getTeams());
     }
