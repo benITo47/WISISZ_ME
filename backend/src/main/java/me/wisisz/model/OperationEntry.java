@@ -13,11 +13,11 @@ public class OperationEntry {
     @Column(name = "entry_id")
     private Integer entryId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_id", nullable = false)
     private Operation operation;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private TeamMember teamMember;
 

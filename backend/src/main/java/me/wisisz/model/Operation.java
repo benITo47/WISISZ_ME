@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "operation", schema = "wisiszme")
@@ -14,8 +17,10 @@ public class Operation {
     @Column(name = "operation_id")
     private Integer id;
 
-    @Column(name = "team_id", nullable = false)
-    private Integer teamId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnore
+    private Team team;
 
     @Column(name = "operation_date", nullable = false)
     private OffsetDateTime operationDate;
@@ -26,14 +31,18 @@ public class Operation {
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 
-    @Column(name = "category_id", nullable = false)
-    private Integer categoryId;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(name = "currency_code", nullable = false)
     private String currencyCode;
 
     @Column(name = "operation_type", nullable = false)
     private String operationType;
+
+    @OneToMany(mappedBy = "operation", fetch = FetchType.LAZY)
+    private List<OperationEntry> entries;
 
     public Integer getId() {
         return id;
@@ -43,12 +52,12 @@ public class Operation {
         this.id = id;
     }
 
-    public Integer getTeamId() {
-        return teamId;
+    public Team getTeam() {
+        return team;
     }
 
-    public void setTeamId(Integer teamId) {
-        this.teamId = teamId;
+    public void setTeam(Team team) {
+        this.team = team;
     }
 
     public OffsetDateTime getOperationDate() {
@@ -75,12 +84,12 @@ public class Operation {
         this.totalAmount = totalAmount;
     }
 
-    public Integer getCategoryId() {
-        return categoryId;
+    public Category getCategoryId() {
+        return category;
     }
 
-    public void setCategoryId(Integer categoryId) {
-        this.categoryId = categoryId;
+    public void setCategoryId(Category category) {
+        this.category = category;
     }
 
     public String getCurrencyCode() {
@@ -97,5 +106,21 @@ public class Operation {
 
     public void setOperationType(String operationType) {
         this.operationType = operationType;
+    }
+
+    public List<OperationEntry> getEntries() {
+        return entries;
+    }
+
+    public void setEntries(List<OperationEntry> entries) {
+        this.entries = entries;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

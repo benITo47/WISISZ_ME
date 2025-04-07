@@ -27,7 +27,7 @@ public class Person {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @OneToMany(mappedBy = "person")
+    @OneToMany(mappedBy = "person", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<TeamMember> memberships;
 

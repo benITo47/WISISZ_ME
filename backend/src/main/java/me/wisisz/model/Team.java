@@ -18,9 +18,13 @@ public class Team {
     @Column(name = "team_name", nullable = false)
     private String teamName;
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<TeamMember> memberships;
+
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Operation> operations;
 
     public Integer getTeamId() {
         return teamId;
@@ -44,5 +48,13 @@ public class Team {
 
     public void setMemberships(List<TeamMember> memberships) {
         this.memberships = memberships;
+    }
+
+    public List<Operation> getOperations() {
+        return operations;
+    }
+
+    public void setOperations(List<Operation> operations) {
+        this.operations = operations;
     }
 }

@@ -1,4 +1,3 @@
-
 package me.wisisz.controller;
 
 import me.wisisz.model.Person;
