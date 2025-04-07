@@ -1,5 +1,7 @@
 package me.wisisz.util;
 
+import me.wisisz.service.RefreshTokenService;
+
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Claims;
@@ -7,12 +9,19 @@ import io.jsonwebtoken.Jwts;
 
 import java.security.Key;
 import io.github.cdimascio.dotenv.Dotenv;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
+    
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     private static final String JWT_SECRET_KEY = Dotenv.load().get("JWT_SECRET_KEY");
     private static final Key KEY = Keys.hmacShaKeyFor(JWT_SECRET_KEY.getBytes());
@@ -38,14 +47,29 @@ public class JwtUtil {
                     .compact();
     }
 
-    public void validateToken(String token) {
+    public Map<String, String> validateToken(String token) throws Exception {
         try {
-            Jwts.parserBuilder()
-                .setSigningKey(KEY)
-                .build()
-                .parseClaimsJws(token);
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String emailAddr = claims.getSubject();
+
+            String newAccessToken = generateAccessToken(emailAddr);
+            String newRefreshToken = generateRefreshToken(emailAddr);
+
+            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, emailAddr);
+
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("accessToken", newAccessToken);
+            tokens.put("refreshToken", newRefreshToken);
+
+            return tokens;
+
         } catch (JwtException e) {
-            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+            throw new Exception("Invalid or expired token: " + e.getMessage());
         }
     }
 
@@ -71,13 +95,17 @@ public class JwtUtil {
         }
     }
 
-    public String getEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public String getEmail(String token) throws Exception {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (JwtException e) {
+            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+        }
     }
 
 }

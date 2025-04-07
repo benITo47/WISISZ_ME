@@ -59,7 +59,7 @@ public class AuthenticationController {
     /**
      * /auth/logout, POST - Logout method.
      * 
-     * @param authorizationHeader - token from the authorization header (Bearer).
+     * @param authorizationHeader - token from the authorization header.
      * @return ResponseEntity containing either OK status or an error message.
      */
     @PostMapping("/logout")

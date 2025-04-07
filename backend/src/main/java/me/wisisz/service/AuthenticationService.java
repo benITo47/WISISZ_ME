@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -66,28 +65,19 @@ public class AuthenticationService {
             throw new Exception("Invalid email or password");
         }
 
-        Optional<RefreshToken> refreshTokenOptional = refreshTokenService.getRefreshTokenByPerson(person);
+        String accessToken = jwtUtil.generateAccessToken(emailAddr);
+        String refreshToken = jwtUtil.generateRefreshToken(emailAddr);
 
-        if (refreshTokenOptional.isPresent()) {
-            throw new Exception("Refresh Token already exists");
+        try{
+            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, emailAddr);
+        } catch (Exception e) {
+            throw new Exception("Failed to save Refresh Token");
         }
-
-        String accessToken = jwtUtil.generateAccessToken(person.getEmailAddr());
-        String refreshToken = jwtUtil.generateRefreshToken(person.getEmailAddr());
-
-        RefreshToken modelToken = new RefreshToken();
-        modelToken.setPerson(person);
-        modelToken.setToken(refreshToken);
-        modelToken.setIssuedAt(OffsetDateTime.now());
-        modelToken.setExpiresAt(OffsetDateTime.now().plusDays(1));
-        modelToken.setIsRevoked(false);
-
-        refreshTokenService.saveRefreshToken(modelToken);
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", accessToken);
         tokens.put("refreshToken", refreshToken);
-
+        
         return tokens;
     }
 

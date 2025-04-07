@@ -8,9 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.OffsetDateTime;
 
 @Service
 public class RefreshTokenService {
+
+    @Autowired
+    private PersonService personService;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -25,6 +29,41 @@ public class RefreshTokenService {
 
     public Optional<RefreshToken> getRefreshTokenByPerson(Person person) {
         return refreshTokenRepository.findByPerson(person);
+    }
+
+    public void saveRefreshTokenToDatabase(String refreshToken, String emailAddr) throws Exception {
+        Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
+
+        if (!personOptional.isPresent()) {
+            throw new Exception("Invalid person");
+        }
+
+        Person person = personOptional.get();
+
+        Optional<RefreshToken> refreshTokenOptional = getRefreshTokenByPerson(person);
+
+        if (refreshTokenOptional.isPresent()) {
+
+            RefreshToken modelToken = refreshTokenOptional.get();
+
+            modelToken.setToken(refreshToken);
+            modelToken.setIssuedAt(OffsetDateTime.now());
+            modelToken.setExpiresAt(OffsetDateTime.now().plusDays(1));
+            modelToken.setIsRevoked(false);
+
+            saveRefreshToken(modelToken);
+
+        } else {
+
+            RefreshToken modelToken = new RefreshToken();
+            modelToken.setPerson(person);
+            modelToken.setToken(refreshToken);
+            modelToken.setIssuedAt(OffsetDateTime.now());
+            modelToken.setExpiresAt(OffsetDateTime.now().plusDays(1));
+            modelToken.setIsRevoked(false);
+
+            saveRefreshToken(modelToken);
+        }
     }
 
     public void saveRefreshToken(RefreshToken refreshToken) {
