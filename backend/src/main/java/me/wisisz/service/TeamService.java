@@ -9,6 +9,8 @@ import me.wisisz.repository.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -34,5 +36,13 @@ public class TeamService {
     public Optional<List<Operation>> getTeamOperations(Integer teamId) {
         return teamRepository.findById(teamId)
                 .map(t -> t.getOperations());
+    }
+
+    @Transactional
+    public void deleteTeamById(Integer teamId) {
+        if (!teamRepository.existsById(teamId)) {
+            throw new IllegalArgumentException("Team with ID " + teamId + " does not exist.");
+        }
+        teamRepository.deleteById(teamId);
     }
 }

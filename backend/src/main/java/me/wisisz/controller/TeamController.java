@@ -3,7 +3,6 @@ package me.wisisz.controller;
 import me.wisisz.dto.OperationDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 import me.wisisz.model.Operation;
-import me.wisisz.model.Person;
 import me.wisisz.model.Team;
 import me.wisisz.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,5 +63,15 @@ public class TeamController {
             }
         }
         return new ResponseEntity<>(balance, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{teamId}")
+    public ResponseEntity<Map<String, String>> deleteTeam(@PathVariable Integer teamId) {
+        try {
+            teamService.deleteTeamById(teamId);
+            return ResponseEntity.ok(Map.of("msg", "Team deleted successfully."));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

@@ -79,6 +79,7 @@ public class Person {
         this.memberships = memberships;
     }
 
+    @JsonIgnore
     public List<Team> getTeams() {
         return memberships.stream().map(m -> m.getTeam()).toList();
     }
