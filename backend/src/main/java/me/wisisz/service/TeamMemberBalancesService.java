@@ -2,10 +2,16 @@ package me.wisisz.service;
 
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.repository.TeamMemberBalancesRepository;
+import me.wisisz.repository.TeamRepository;
+import me.wisisz.model.Team;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import jakarta.persistence.EntityNotFoundException;
+
 
 /**
  * Service class for managing team member balances.
@@ -23,8 +29,12 @@ import java.util.List;
 @Service
 public class TeamMemberBalancesService {
 
+    private final TeamMemberBalancesRepository teamMemberBalancesRepository;
+
     @Autowired
-    private TeamMemberBalancesRepository teamMemberBalanceRepository;
+    public TeamMemberBalancesService(TeamMemberBalancesRepository teamMemberBalancesRepository) {
+        this.teamMemberBalancesRepository = teamMemberBalancesRepository;
+    }
 
     /**
      * Retrieves all balances from the view.
@@ -32,7 +42,7 @@ public class TeamMemberBalancesService {
      * @return List of all balances.
      */
     public List<TeamMemberBalances> getAllBalances() {
-        return teamMemberBalanceRepository.findAll();
+        return teamMemberBalancesRepository.findAll(); 
     }
 
     /**
@@ -41,7 +51,7 @@ public class TeamMemberBalancesService {
      * @param teamId ID of the team.
      * @return List of balances for team members within the specified team.
      */
-    public List<TeamMemberBalances> getBalancesByTeamId(Integer teamId) {
-        return teamMemberBalanceRepository.findBalancesByTeamId(teamId);
+    public List<TeamMemberBalances> getBalancesByTeam(Team team) {
+        return teamMemberBalancesRepository.findByTeam(team);
     }
 }

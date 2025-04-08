@@ -2,6 +2,7 @@ package me.wisisz.controller;
 
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.TeamMemberBalancesService;
+import me.wisisz.model.Team;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,21 +41,22 @@ public class TeamMemberBalancesController {
     @GetMapping
     public ResponseEntity<List<TeamMemberBalances>> getAllBalances() {
         List<TeamMemberBalances> balances = teamMemberBalancesService.getAllBalances();
-        return new ResponseEntity<>(balances, HttpStatus.OK);
+        return ResponseEntity.ok(balances);
     }
 
     /**
      * Retrieves balances for a specific team.
      * 
-     * @param teamId ID of the team.
+     * @param team chosen team.
      * @return Response entity containing a list of balances for the team members, or a 404 status if no data is found.
      */
-    @GetMapping("/{teamId}")
-    public ResponseEntity<List<TeamMemberBalances>> getBalancesByTeamId(@PathVariable Integer teamId) {
-        List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeamId(teamId);
-        if (!balances.isEmpty()) {
-            return new ResponseEntity<>(balances, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @GetMapping("/team")
+    public ResponseEntity<List<TeamMemberBalances>> getBalancesByTeam(@RequestBody Team team) {
+    List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(team);
+
+    if (balances.isEmpty()) {
+        return ResponseEntity.notFound().build();
     }
+    return ResponseEntity.ok(balances);
+}
 }

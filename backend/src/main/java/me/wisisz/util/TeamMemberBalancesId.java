@@ -3,10 +3,14 @@ package me.wisisz.util;
 import java.io.Serializable;
 import java.util.Objects;
 
+import me.wisisz.model.Team;
+import me.wisisz.model.TeamMember;
+import me.wisisz.model.Person;
+
 public class TeamMemberBalancesId implements Serializable {
-    private Integer teamId;
-    private Integer memberId;
-    private Integer personId;
+    private Team team;
+    private TeamMember teamMember;
+    private Person person;
 
     public TeamMemberBalancesId() {}
 
@@ -15,13 +19,13 @@ public class TeamMemberBalancesId implements Serializable {
         if (this == o) return true;
         if (!(o instanceof TeamMemberBalancesId)) return false;
         TeamMemberBalancesId that = (TeamMemberBalancesId) o;
-        return Objects.equals(teamId, that.teamId) &&
-               Objects.equals(memberId, that.memberId) &&
-               Objects.equals(personId, that.personId);
+        return Objects.equals(team, that.team) &&
+               Objects.equals(teamMember, that.teamMember) &&
+               Objects.equals(person, that.person);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(teamId, memberId, personId);
+        return Objects.hash(team, teamMember, person);
     }
 }

@@ -24,21 +24,22 @@ import me.wisisz.util.TeamMemberBalancesId;
  * - This entity is read-only and does not allow modification since it represents a database view.
  */
 @Entity
-@IdClass(TeamMemberBalancesId.class)
 @Table(name = "team_member_balances", schema = "wisiszme")
 public class TeamMemberBalances implements Serializable {
 
     @Id
-    @Column(name = "team_id")
-    private Integer teamId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id", nullable = false)
+    private Team team;
 
     @Id
-    @Column(name = "member_id")
-    private Integer memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private TeamMember teamMember;
 
-    @Id
-    @Column(name = "person_id", nullable = false)
-    private Integer personId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "person_id", nullable = false)
+    private Person person;
 
     @Column(name = "fname", nullable = false)
     private String firstName;
@@ -52,26 +53,26 @@ public class TeamMemberBalances implements Serializable {
     public TeamMemberBalances() {}
 
     // Constructor for initializing all fields
-    public TeamMemberBalances(Integer teamId, Integer memberId, Integer personId, String firstName, String lastName, BigDecimal balance) {
-        this.teamId = teamId;
-        this.memberId = memberId;
-        this.personId = personId;
+    public TeamMemberBalances(Team team, TeamMember teamMember, Person person, String firstName, String lastName, BigDecimal balance) {
+        this.team = team;
+        this.teamMember = teamMember;
+        this.person = person;
         this.firstName = firstName;
         this.lastName = lastName;
         this.balance = balance;
     }
 
     // Getters (no setters, since this is a read-only entity)
-    public Integer getTeamId() {
-        return teamId;
+    public Team getTeam() {
+        return team;
     }
 
-    public Integer getMemberId() {
-        return memberId;
+    public TeamMember getTeamMember() {
+        return teamMember;
     }
 
-    public Integer getPersonId() {
-        return personId;
+    public Person getPerson() {
+        return person;
     }
 
     public String getFirstName() {
