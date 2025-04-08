@@ -58,11 +58,11 @@ create index operation_entry_idx_2 on wisiszme.operation_entry (member_id asc);
 -- Table: person
 create table wisiszme.person
 (
-    person_id     int   not null generated always as identity,
-    fname         text  not null,
-    lname         text  null,
-    email_addr    email not null,
-    password_hash text  not null,
+    person_id     int  not null generated always as identity,
+    fname         text not null,
+    lname         text null,
+    email_addr    text not null,
+    password_hash text not null,
     constraint email_addr_unique unique (email_addr) not deferrable initially immediate,
     constraint person_pk primary key (person_id)
 );
