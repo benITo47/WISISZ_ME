@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import io.jsonwebtoken.JwtException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,9 +21,6 @@ public class AuthenticationService {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     //private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -65,8 +64,8 @@ public class AuthenticationService {
             throw new Exception("Invalid email or password");
         }
 
-        String accessToken = jwtUtil.generateAccessToken(emailAddr);
-        String refreshToken = jwtUtil.generateRefreshToken(emailAddr);
+        String accessToken = JwtUtil.generateAccessToken(emailAddr);
+        String refreshToken = JwtUtil.generateRefreshToken(emailAddr);
 
         try{
             refreshTokenService.saveRefreshTokenToDatabase(refreshToken, emailAddr);
@@ -81,10 +80,12 @@ public class AuthenticationService {
         return tokens;
     }
 
-    public String postLogout(String accessToken) throws Exception {
+    public String postLogout(String header) throws Exception {
 
-        jwtUtil.validateToken(accessToken);
-        String emailAddr = jwtUtil.getEmail(accessToken);
+        Map<String, String> userInfo = validateToken(header);
+
+
+        String emailAddr = userInfo.get("email");
 
         Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
 
@@ -105,4 +106,24 @@ public class AuthenticationService {
 
         return "User logged out";
     }
+
+    public Map<String, String> validateToken(String authorizationHeader) throws Exception {
+        try {
+            String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
+            String emailAddr = JwtUtil.getEmail(token);
+            String newAccessToken = JwtUtil.generateAccessToken(emailAddr);
+            String newRefreshToken = JwtUtil.generateRefreshToken(emailAddr);
+
+            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, emailAddr);
+
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("email", emailAddr);
+            tokens.put("accessToken", newAccessToken);
+            tokens.put("refreshToken", newRefreshToken);
+            return tokens;
+        } catch (JwtException e) {
+            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+        }
+    }
+
 }

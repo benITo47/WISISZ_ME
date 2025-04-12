@@ -65,8 +65,7 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<String> postLogout(@RequestHeader("Authorization") String authorizationHeader) {
         try {
-            String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
-            String message = authenticationService.postLogout(token);
+            String message = authenticationService.postLogout(authorizationHeader);
             return new ResponseEntity<>(message, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
