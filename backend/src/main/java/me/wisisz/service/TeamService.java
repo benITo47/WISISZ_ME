@@ -4,6 +4,7 @@ import me.wisisz.dto.OperationDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 import me.wisisz.model.Operation;
 import me.wisisz.model.Team;
+import me.wisisz.repository.TeamMemberRepository;
 import me.wisisz.repository.TeamRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,14 @@ public class TeamService {
     @Autowired
     private TeamRepository teamRepository;
 
+    @Autowired
+    private TeamMemberRepository teamMemberRepository;
+
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
 
-    public Optional<TeamWithMembersDTO> getTeamById(Integer teamId) {
+    public Optional<TeamWithMembersDTO> getTeamWithMembersById(Integer teamId) {
         return teamRepository.findById(teamId).map(t -> new TeamWithMembersDTO(t));
     }
 
@@ -36,6 +40,10 @@ public class TeamService {
     public Optional<List<Operation>> getTeamOperations(Integer teamId) {
         return teamRepository.findById(teamId)
                 .map(t -> t.getOperations());
+    }
+
+    public boolean isPersonInTeam(Integer personId, Integer teamId) {
+        return teamMemberRepository.existsByPersonIdAndTeamId(personId, teamId);
     }
 
     @Transactional

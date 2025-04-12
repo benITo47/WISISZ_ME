@@ -31,26 +31,26 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public static String getEmail(String token) throws Exception {
+    public static Integer getPersonId(String token) throws Exception {
         try {
-            return parseClaims(token).getSubject();
+            return Integer.valueOf(parseClaims(token).getSubject());
         } catch (JwtException e) {
             throw new RuntimeException("Invalid or expired token: " + e.getMessage());
         }
     }
 
-    public static String generateAccessToken(String emailAddr) {
+    public static String generateAccessToken(Integer personId) {
         return Jwts.builder()
-                    .setSubject(emailAddr)
+                    .setSubject(personId.toString())
                     .setIssuedAt(new Date())
                     .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_TIME))
                     .signWith(KEY)
                     .compact();
     }
 
-    public static String generateRefreshToken(String emailAddr) {
+    public static String generateRefreshToken(Integer personId) {
         return Jwts.builder()
-                    .setSubject(emailAddr)
+                    .setSubject(personId.toString())
                     .setIssuedAt(new Date())
                     .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME))
                     .signWith(KEY)
@@ -60,9 +60,9 @@ public class JwtUtil {
     public static String refreshAccessToken(String refreshToken) throws Exception {
         try {
             Claims claims = parseClaims(refreshToken);
-            String emailAddr = claims.getSubject();
+            String personId = claims.getSubject();
 
-            return generateAccessToken(emailAddr);
+            return generateAccessToken(Integer.valueOf(personId));
 
         } catch (JwtException e) {
             throw new Exception("Invalid or expired refresh token: " + e.getMessage());

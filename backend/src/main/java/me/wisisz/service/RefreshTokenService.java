@@ -31,8 +31,8 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByPerson(person);
     }
 
-    public void saveRefreshTokenToDatabase(String refreshToken, String emailAddr) throws Exception {
-        Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
+    public void saveRefreshTokenToDatabase(String refreshToken, Integer personId) throws Exception {
+        Optional<Person> personOptional = personService.getPersonById(personId);
 
         if (!personOptional.isPresent()) {
             throw new Exception("Invalid person");

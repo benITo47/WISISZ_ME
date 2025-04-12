@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthenticationController {
 
     @Autowired
@@ -19,7 +19,7 @@ public class AuthenticationController {
     /**
      * /auth/register, POST - Login method to authenticate the user using email and password.
      * 
-     * @param registerRequest - Map containing: email ("emailAddrs"), password ("password"), firstname ("fname") and lastname ("lname") from the request body.
+     * @param registerRequest - Map containing: email ("emailAddr"), password ("password"), firstname ("fname") and lastname ("lname") from the request body.
      * @return ResponseEntity containing either CREATED status or an error message.
      */
     @PostMapping("/register")
@@ -36,7 +36,7 @@ public class AuthenticationController {
     /**
      * /auth/login, POST - Login method to authenticate the user using email and password.
      * 
-     * @param loginRequest - Map containing the email ("emailAddrs") and password ("password") from the request body.
+     * @param loginRequest - Map containing the email ("emailAddr") and password ("password") from the request body.
      * @return ResponseEntity containing either the JWT tokens ("accessToken", "refreshToken") or an error message in the header.
      */
     @PostMapping("/login")

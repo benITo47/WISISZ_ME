@@ -11,7 +11,7 @@ public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "token_id")
-    private Integer tokenId;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
@@ -29,12 +29,12 @@ public class RefreshToken {
     @Column(name = "is_revoked", nullable = false)
     private Boolean isRevoked;
 
-    public Integer getTokenId() {
-        return tokenId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setTokenId(Integer tokenId) {
-        this.tokenId = tokenId;
+    public void setId(Integer tokenId) {
+        this.id = tokenId;
     }
 
     public Person getPerson() {

@@ -10,6 +10,6 @@ public record TeamWithMembersDTO(
         List<TeamMemberDTO> members) {
 
     public TeamWithMembersDTO(Team t) {
-        this(t.getTeamId(), t.getTeamName(), t.getMemberships().stream().map(m -> new TeamMemberDTO(m)).toList());
+        this(t.getId(), t.getTeamName(), t.getMemberships().stream().map(m -> new TeamMemberDTO(m)).toList());
     }
 }

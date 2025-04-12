@@ -11,7 +11,7 @@ public class TeamMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
-    private Integer memberId;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
@@ -24,12 +24,12 @@ public class TeamMember {
     @Column(name = "default_share", nullable = false)
     private BigDecimal defaultShare;
 
-    public Integer getMemberId() {
-        return memberId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setMemberId(Integer memberId) {
-        this.memberId = memberId;
+    public void setId(Integer memberId) {
+        this.id = memberId;
     }
 
     public Team getTeam() {

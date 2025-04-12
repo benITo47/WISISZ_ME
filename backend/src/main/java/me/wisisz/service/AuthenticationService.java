@@ -64,11 +64,11 @@ public class AuthenticationService {
             throw new Exception("Invalid email or password");
         }
 
-        String accessToken = JwtUtil.generateAccessToken(emailAddr);
-        String refreshToken = JwtUtil.generateRefreshToken(emailAddr);
+        String accessToken = JwtUtil.generateAccessToken(person.getId());
+        String refreshToken = JwtUtil.generateRefreshToken(person.getId());
 
         try{
-            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, emailAddr);
+            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, person.getId());
         } catch (Exception e) {
             throw new Exception("Failed to save Refresh Token");
         }
@@ -82,15 +82,15 @@ public class AuthenticationService {
 
     public String postLogout(String header) throws Exception {
 
-        Map<String, String> userInfo = validateToken(header);
+        Map<String, Object> userInfo = validateToken(header);
 
 
-        String emailAddr = userInfo.get("email");
+        Integer personId = (Integer)userInfo.get("personId");
 
-        Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
+        Optional<Person> personOptional = personService.getPersonById(personId);
 
         if (!personOptional.isPresent()) {
-            throw new Exception("Email not registered");
+            throw new Exception("Person not registered");
         }
 
         Person person = personOptional.get();
@@ -107,17 +107,17 @@ public class AuthenticationService {
         return "User logged out";
     }
 
-    public Map<String, String> validateToken(String authorizationHeader) throws Exception {
+    public Map<String, Object> validateToken(String authorizationHeader) throws Exception {
         try {
             String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
-            String emailAddr = JwtUtil.getEmail(token);
-            String newAccessToken = JwtUtil.generateAccessToken(emailAddr);
-            String newRefreshToken = JwtUtil.generateRefreshToken(emailAddr);
+            Integer personId = JwtUtil.getPersonId(token);
+            String newAccessToken = JwtUtil.generateAccessToken(personId);
+            String newRefreshToken = JwtUtil.generateRefreshToken(personId);
 
-            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, emailAddr);
+            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("email", emailAddr);
+            Map<String, Object> tokens = new HashMap<>();
+            tokens.put("personId", personId);
             tokens.put("accessToken", newAccessToken);
             tokens.put("refreshToken", newRefreshToken);
             return tokens;
