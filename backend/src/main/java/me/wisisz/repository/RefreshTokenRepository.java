@@ -1,8 +1,12 @@
 package me.wisisz.repository;
 
+import me.wisisz.model.Person;
 import me.wisisz.model.RefreshToken;
+
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
-    // Custom queries can be added here if needed
+    Optional<RefreshToken> findByPerson(Person person);
 }
