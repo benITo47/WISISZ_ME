@@ -7,9 +7,11 @@ import me.wisisz.dto.TeamWithMembersDTO;
 import me.wisisz.model.Operation;
 import me.wisisz.model.OperationEntry;
 import me.wisisz.model.Team;
+import me.wisisz.model.Person;
 import me.wisisz.model.TeamMember;
 import me.wisisz.model.Category;
 
+import me.wisisz.repository.PersonRepository;
 import me.wisisz.repository.TeamMemberRepository;
 import me.wisisz.repository.TeamRepository;
 import me.wisisz.repository.OperationRepository;
@@ -36,6 +38,9 @@ public class TeamService {
 
     @Autowired
     private TeamMemberRepository teamMemberRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @Autowired
     private OperationRepository operationRepository;
@@ -65,6 +70,40 @@ public class TeamService {
 
     public boolean isPersonInTeam(Integer personId, Integer teamId) {
         return teamMemberRepository.existsByPersonIdAndTeamId(personId, teamId);
+    }
+
+    public String saveTeam(Integer meId, Map<String, String> data) throws Exception{
+        Team newTeam = new Team();
+        newTeam.setTeamName(data.get("teamName"));
+        teamRepository.save(newTeam);
+
+        TeamMember newTeamMember = new TeamMember();
+        newTeamMember.setTeam(newTeam);
+        Optional<Person> person = personRepository.findById(meId);
+        newTeamMember.setPerson(person.get());
+        newTeamMember.setDefaultShare(new BigDecimal(1));
+        teamMemberRepository.save(newTeamMember);
+
+        return "Team added";
+    }
+
+    public String saveTeamMember(Integer teamId, Map<String, String> data) throws Exception{
+
+        TeamMember newTeamMember = new TeamMember();
+        Optional<Team> team = teamRepository.findById(teamId);
+        newTeamMember.setTeam(team.get());
+        Optional<Person> person = personRepository.findByEmailAddr(data.get("emailAddr"));
+        newTeamMember.setPerson(person.get());
+        newTeamMember.setDefaultShare(new BigDecimal(data.get("shares")));
+        teamMemberRepository.save(newTeamMember);
+
+        return "Team member added";
+    }
+
+    public String removeTeamMember(Integer teamId, Integer personId) throws Exception{ //TODO: failsave; can't remove if balance not settled
+        Optional<TeamMember> member = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
+        teamMemberRepository.delete(member.get());
+        return "Team member removed";
     }
 
     public String saveTeamOperation(Integer meId, Integer teamId, Map<String, String> data) throws Exception {
@@ -143,7 +182,7 @@ public class TeamService {
                 break;
             }
 
-            case "transfer": { // Create operation entries for 2 members
+            case "transfer": { // Create operation entries for 2 members - TODO: Greed algorithm to be added once team balance is implemented
                 Optional<TeamMember> sender = teamMemberRepository.findById(meId);
                 Optional<TeamMember> recipient = teamMemberRepository.findById(Integer.parseInt(data.get("recipientID")));
                     

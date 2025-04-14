@@ -1,7 +1,5 @@
 package me.wisisz.controller;
 
-import me.wisisz.dto.OperationDTO;
-import me.wisisz.dto.TeamMemberDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 import me.wisisz.model.Person;
 import me.wisisz.model.Team;
@@ -56,12 +54,28 @@ public class MeSocialController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * /api/me/teams, POST - Create a team
+     * 
+     * @param authorizationHeader - token from the authorization header.
+     * @param teamData - JSON body containing following operation data: 
+     *      "teamName": name of the team
+     * @return ResponseEntity containing either OK status or an error message.
+     */
     @PostMapping("/teams")
     public ResponseEntity<Map<String, String>> createTeam(
             @RequestHeader("Authorization") String authorizationHeader,
-            Map<String, String> teamInfo) {
+            @RequestBody Map<String, String> teamData) throws Exception {
 
-        throw new UnsupportedOperationException("TODO");
+        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
+        Integer meId = (Integer) meInfo.get("personId");
+
+        try{
+            String message = teamService.saveTeam(meId, teamData);
+            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/teams/{teamId}")
@@ -82,11 +96,21 @@ public class MeSocialController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * /api/me/teams/{teamid}/members, POST - Add person to the team via email
+     * 
+     * @param authorizationHeader - token from the authorization header.
+     * @param teamId - teamId from path.
+     * @param memberData - JSON body containing following operation data: 
+     *      "emailAddr": email address of the new member
+     *      "shares": shares in the team
+     * @return ResponseEntity containing either OK status or an error message.
+     */
     @PostMapping("/teams/{teamId}/members")
-    public ResponseEntity<List<TeamMemberDTO>> addTeamMember(
+    public ResponseEntity<Map<String, String>> addTeamMember(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Integer teamId,
-            @RequestBody Map<String, String> emailAddr) throws Exception {
+            @RequestBody Map<String, String> memberData) throws Exception {
 
         Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
         Integer meId = (Integer) meInfo.get("personId");
@@ -94,15 +118,27 @@ public class MeSocialController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        throw new UnsupportedOperationException("TODO");
+        try{
+            String message = teamService.saveTeamMember(teamId, memberData);
+            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+    /**
+     * /api/me/teams/{teamid}/members/{personId}, DELETE - Add person to the team via email
+     * 
+     * @param authorizationHeader - token from the authorization header.
+     * @param teamId - teamId from path.
+     * @param personId - personId from path.
+     * @return ResponseEntity containing either OK status or an error message.
+     */
     @DeleteMapping("/teams/{teamId}/members/{personId}")
-    public ResponseEntity<List<TeamMemberDTO>> removeTeamMember(
+    public ResponseEntity<Map<String, String>> removeTeamMember(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Integer teamId,
-            @PathVariable Integer personId,
-            @RequestBody Map<String, String> emailAddr) throws Exception {
+            @PathVariable Integer personId) throws Exception {
 
         Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
         Integer meId = (Integer) meInfo.get("personId");
@@ -110,6 +146,11 @@ public class MeSocialController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        throw new UnsupportedOperationException("TODO");
+        try{
+            String message = teamService.removeTeamMember(teamId, personId);
+            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

@@ -47,7 +47,7 @@ public class MeOperationsController {
      * 
      * @param authorizationHeader - token from the authorization header.
      * @param teamId - teamId from path.
-     * @param operationData - Map<String, String> containing following operation data: 
+     * @param operationData - JSON body containing following operation data: 
      *      "totalAmount": amount to be paid in an operation
      *      "cathegoryId": ID of operation cathegory
      *      "currencyCode": code of operation currency
