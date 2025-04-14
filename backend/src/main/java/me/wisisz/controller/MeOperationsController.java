@@ -42,6 +42,20 @@ public class MeOperationsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * /api/me/teams/{teamId}/operations, POST - Add an operation; automatically adds according operationEntries.
+     * 
+     * @param authorizationHeader - token from the authorization header.
+     * @param teamId - teamId from path.
+     * @param operationData - Map<String, String> containing following operation data: 
+     *      "totalAmount": amount to be paid in an operation
+     *      "cathegoryId": ID of operation cathegory
+     *      "currencyCode": code of operation currency
+     *      "description": operation description
+     *      "operationType": "expense", "income" or "transfer"
+     *      ["recipientID": if operationType is "transfer", ID of the recipient]
+     * @return ResponseEntity containing either OK status or an error message.
+     */
     @PostMapping("")
     public ResponseEntity<Map<String, String>> addOperation(
             @RequestHeader("Authorization") String authorizationHeader,
@@ -54,7 +68,12 @@ public class MeOperationsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        throw new UnsupportedOperationException("TODO");
+        try{
+            String message = teamService.saveTeamOperation(meId, teamId, operationData);
+            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("")
