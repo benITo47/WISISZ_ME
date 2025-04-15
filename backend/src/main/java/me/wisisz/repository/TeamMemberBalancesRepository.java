@@ -1,6 +1,7 @@
 package me.wisisz.repository;
 
-import me.wisisz.model.TeamMemberBalance;
+import me.wisisz.model.TeamMemberBalances;
+import me.wisisz.util.TeamMemberBalancesId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,7 +20,7 @@ import java.util.List;
  * Custom queries:
  * - findBalancesByTeamId: Retrieves balances for all members within a specific team, based on the team ID.
  */
-public interface TeamMemberBalanceRepository extends JpaRepository<TeamMemberBalance, TeamMemberBalanceId> {
+public interface TeamMemberBalancesRepository extends JpaRepository<TeamMemberBalances, TeamMemberBalancesId> {
 
     /**
      * Retrieves all balances for a specific team.
@@ -27,6 +28,6 @@ public interface TeamMemberBalanceRepository extends JpaRepository<TeamMemberBal
      * @param teamId ID of the team.
      * @return List of balances for the team members.
      */
-    @Query("SELECT tmb FROM TeamMemberBalance tmb WHERE tmb.teamId = :teamId")
-    List<TeamMemberBalance> findBalancesByTeamId(@Param("teamId") Integer teamId);
+    @Query("SELECT tmb FROM TeamMemberBalances tmb WHERE tmb.teamId = :teamId")
+    List<TeamMemberBalances> findBalancesByTeamId(@Param("teamId") Integer teamId);
 }

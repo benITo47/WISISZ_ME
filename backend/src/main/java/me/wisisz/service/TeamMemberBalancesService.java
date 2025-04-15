@@ -1,7 +1,7 @@
 package me.wisisz.service;
 
-import me.wisisz.model.TeamMemberBalance;
-import me.wisisz.repository.TeamMemberBalanceRepository;
+import me.wisisz.model.TeamMemberBalances;
+import me.wisisz.repository.TeamMemberBalancesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +23,15 @@ import java.util.List;
 @Service
 public class TeamMemberBalancesService {
 
-    private final TeamMemberBalanceRepository teamMemberBalanceRepository;
-
     @Autowired
-    public TeamMemberBalancesService(TeamMemberBalanceRepository teamMemberBalanceRepository) {
-        this.teamMemberBalanceRepository = teamMemberBalanceRepository;
-    }
+    private TeamMemberBalancesRepository teamMemberBalanceRepository;
 
     /**
      * Retrieves all balances from the view.
      * 
      * @return List of all balances.
      */
-    public List<TeamMemberBalance> getAllBalances() {
+    public List<TeamMemberBalances> getAllBalances() {
         return teamMemberBalanceRepository.findAll();
     }
 
@@ -45,7 +41,7 @@ public class TeamMemberBalancesService {
      * @param teamId ID of the team.
      * @return List of balances for team members within the specified team.
      */
-    public List<TeamMemberBalance> getBalancesByTeamId(Integer teamId) {
+    public List<TeamMemberBalances> getBalancesByTeamId(Integer teamId) {
         return teamMemberBalanceRepository.findBalancesByTeamId(teamId);
     }
 }

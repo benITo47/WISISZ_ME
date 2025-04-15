@@ -2,6 +2,9 @@ package me.wisisz.model;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
+
+import me.wisisz.util.TeamMemberBalancesId;
 
 /**
  * Represents a view in the database that stores balances for team members.
@@ -21,31 +24,35 @@ import java.io.Serializable;
  * - This entity is read-only and does not allow modification since it represents a database view.
  */
 @Entity
+@IdClass(TeamMemberBalancesId.class)
 @Table(name = "team_member_balances", schema = "wisiszme")
-public class TeamMemberBalance implements Serializable {
+public class TeamMemberBalances implements Serializable {
 
     @Id
     @Column(name = "team_id")
-    private final Integer teamId;
+    private Integer teamId;
 
     @Id
     @Column(name = "member_id")
-    private final Integer memberId;
+    private Integer memberId;
 
+    @Id
     @Column(name = "person_id", nullable = false)
-    private final Integer personId;
+    private Integer personId;
 
     @Column(name = "fname", nullable = false)
-    private final String firstName;
+    private String firstName;
 
     @Column(name = "lname", nullable = false)
-    private final String lastName;
+    private String lastName;
 
     @Column(name = "balance", nullable = false)
-    private final Double balance;
+    private BigDecimal balance;
+
+    public TeamMemberBalances() {}
 
     // Constructor for initializing all fields
-    public TeamMemberBalance(Integer teamId, Integer memberId, Integer personId, String firstName, String lastName, Double balance) {
+    public TeamMemberBalances(Integer teamId, Integer memberId, Integer personId, String firstName, String lastName, BigDecimal balance) {
         this.teamId = teamId;
         this.memberId = memberId;
         this.personId = personId;
@@ -75,7 +82,7 @@ public class TeamMemberBalance implements Serializable {
         return lastName;
     }
 
-    public Double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 }

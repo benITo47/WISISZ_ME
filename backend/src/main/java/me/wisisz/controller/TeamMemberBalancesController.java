@@ -1,6 +1,6 @@
 package me.wisisz.controller;
 
-import me.wisisz.model.TeamMemberBalance;
+import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.TeamMemberBalancesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,8 +38,8 @@ public class TeamMemberBalancesController {
      * @return Response entity containing a list of all balances.
      */
     @GetMapping
-    public ResponseEntity<List<TeamMemberBalance>> getAllBalances() {
-        List<TeamMemberBalance> balances = teamMemberBalancesService.getAllBalances();
+    public ResponseEntity<List<TeamMemberBalances>> getAllBalances() {
+        List<TeamMemberBalances> balances = teamMemberBalancesService.getAllBalances();
         return new ResponseEntity<>(balances, HttpStatus.OK);
     }
 
@@ -50,8 +50,8 @@ public class TeamMemberBalancesController {
      * @return Response entity containing a list of balances for the team members, or a 404 status if no data is found.
      */
     @GetMapping("/{teamId}")
-    public ResponseEntity<List<TeamMemberBalance>> getBalancesByTeamId(@PathVariable Integer teamId) {
-        List<TeamMemberBalance> balances = teamMemberBalancesService.getBalancesByTeamId(teamId);
+    public ResponseEntity<List<TeamMemberBalances>> getBalancesByTeamId(@PathVariable Integer teamId) {
+        List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeamId(teamId);
         if (!balances.isEmpty()) {
             return new ResponseEntity<>(balances, HttpStatus.OK);
         }
