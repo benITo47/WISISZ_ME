@@ -24,5 +24,5 @@ import java.util.List;
  */
 @Repository
 public interface TeamMemberBalancesRepository extends JpaRepository<TeamMemberBalances, TeamMemberBalancesId> {
-    List<TeamMemberBalances> findByTeam_TeamId(Long teamId);
+    List<TeamMemberBalances> findByTeamId(Long teamId);
 }

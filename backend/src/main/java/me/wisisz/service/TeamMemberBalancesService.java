@@ -47,6 +47,6 @@ public class TeamMemberBalancesService {
      * @return List of balances for team members within the specified team.
      */
     public List<TeamMemberBalances> getBalancesByTeam(Long teamId) {
-        return teamMemberBalancesRepository.findByTeam_TeamId(teamId);
+        return teamMemberBalancesRepository.findByTeamId(teamId);
     }
 }

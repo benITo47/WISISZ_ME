@@ -1,7 +1,9 @@
 package me.wisisz.controller;
 
 import me.wisisz.dto.OperationDTO;
+import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.AuthenticationService;
+import me.wisisz.service.TeamMemberBalancesService;
 import me.wisisz.service.TeamService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class MeOperationsController {
 
     @Autowired
     private TeamService teamService;
+
+    @Autowired
+    private TeamMemberBalancesService teamMemberBalancesService;
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -43,17 +48,19 @@ public class MeOperationsController {
     }
 
     /**
-     * /api/me/teams/{teamId}/operations, POST - Add an operation; automatically adds according operationEntries.
+     * /api/me/teams/{teamId}/operations, POST - Add an operation; automatically
+     * adds according operationEntries.
      * 
      * @param authorizationHeader - token from the authorization header.
-     * @param teamId - teamId from path.
-     * @param operationData - JSON body containing following operation data: 
-     *      "totalAmount": amount to be paid in an operation
-     *      "cathegoryId": ID of operation cathegory
-     *      "currencyCode": code of operation currency
-     *      "description": operation description
-     *      "operationType": "expense", "income" or "transfer"
-     *      ["recipientID": if operationType is "transfer", ID of the recipient]
+     * @param teamId              - teamId from path.
+     * @param operationData       - JSON body containing following operation data:
+     *                            "totalAmount": amount to be paid in an operation
+     *                            "cathegoryId": ID of operation cathegory
+     *                            "currencyCode": code of operation currency
+     *                            "description": operation description
+     *                            "operationType": "expense", "income" or "transfer"
+     *                            ["recipientID": if operationType is "transfer", ID
+     *                            of the recipient]
      * @return ResponseEntity containing either OK status or an error message.
      */
     @PostMapping("")
@@ -68,7 +75,7 @@ public class MeOperationsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        try{
+        try {
             String message = teamService.saveTeamOperation(meId, teamId, operationData);
             return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
         } catch (Exception e) {
@@ -107,7 +114,7 @@ public class MeOperationsController {
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<Map<String, BigDecimal>> getTeamBalance(
+    public ResponseEntity<List<TeamMemberBalances>> getTeamBalance(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Integer teamId) throws Exception {
 
@@ -117,6 +124,11 @@ public class MeOperationsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        throw new UnsupportedOperationException("TODO");
+        List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(Long.valueOf(teamId));
+
+        if (balances.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(balances);
     }
 }
