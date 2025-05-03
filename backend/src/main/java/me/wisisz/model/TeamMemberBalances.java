@@ -69,7 +69,6 @@ public class TeamMemberBalances implements Serializable {
         this.balance = balance;
     }
 
-    // Getters (no setters, since this is a read-only entity)
     public Team getTeam() {
         return team;
     }
@@ -92,5 +91,9 @@ public class TeamMemberBalances implements Serializable {
 
     public BigDecimal getBalance() {
         return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 }

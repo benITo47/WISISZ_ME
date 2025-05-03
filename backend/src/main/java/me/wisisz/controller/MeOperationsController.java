@@ -1,6 +1,7 @@
 package me.wisisz.controller;
 
 import me.wisisz.dto.OperationDTO;
+import me.wisisz.dto.TransactionDTO;
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.AuthenticationService;
 import me.wisisz.service.TeamMemberBalancesService;
@@ -125,6 +126,25 @@ public class MeOperationsController {
         }
 
         List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(Long.valueOf(teamId));
+
+        if (balances.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(balances);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<TransactionDTO>> getTeamTransactions(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Integer teamId) throws Exception {
+
+        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
+        Integer meId = (Integer) meInfo.get("personId");
+        if (!teamService.isPersonInTeam(meId, teamId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        List<TransactionDTO> balances = teamMemberBalancesService.getTeamTransactions(Long.valueOf(teamId));
 
         if (balances.isEmpty()) {
             return ResponseEntity.notFound().build();
