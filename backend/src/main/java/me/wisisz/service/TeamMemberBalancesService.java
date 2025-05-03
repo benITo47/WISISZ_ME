@@ -2,15 +2,12 @@ package me.wisisz.service;
 
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.repository.TeamMemberBalancesRepository;
-import me.wisisz.repository.TeamRepository;
 import me.wisisz.model.Team;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
-import jakarta.persistence.EntityNotFoundException;
 
 
 /**

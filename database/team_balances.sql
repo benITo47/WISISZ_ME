@@ -20,6 +20,7 @@
 
 CREATE OR REPLACE VIEW wisiszme.team_member_balances AS
 SELECT
+    row_number() OVER () AS id,
     tm.team_id,
     tm.member_id,
     p.person_id AS person_id,

@@ -26,13 +26,14 @@ import me.wisisz.util.TeamMemberBalancesId;
 @Entity
 @Table(name = "team_member_balances", schema = "wisiszme")
 public class TeamMemberBalances implements Serializable {
-
     @Id
+    @Column(name = "id")
+    private Integer id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private TeamMember teamMember;
