@@ -11,7 +11,7 @@ public class OperationEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "entry_id")
-    private Integer entryId;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_id", nullable = false)
@@ -24,12 +24,12 @@ public class OperationEntry {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    public Integer getEntryId() {
-        return entryId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setEntryId(Integer entryId) {
-        this.entryId = entryId;
+    public void setId(Integer entryId) {
+        this.id = entryId;
     }
 
     public Operation getOperation() {

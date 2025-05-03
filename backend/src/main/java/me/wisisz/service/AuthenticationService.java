@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import io.jsonwebtoken.JwtException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,9 +21,6 @@ public class AuthenticationService {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     //private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -65,11 +64,11 @@ public class AuthenticationService {
             throw new Exception("Invalid email or password");
         }
 
-        String accessToken = jwtUtil.generateAccessToken(emailAddr);
-        String refreshToken = jwtUtil.generateRefreshToken(emailAddr);
+        String accessToken = JwtUtil.generateAccessToken(person.getId());
+        String refreshToken = JwtUtil.generateRefreshToken(person.getId());
 
         try{
-            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, emailAddr);
+            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, person.getId());
         } catch (Exception e) {
             throw new Exception("Failed to save Refresh Token");
         }
@@ -81,15 +80,17 @@ public class AuthenticationService {
         return tokens;
     }
 
-    public String postLogout(String accessToken) throws Exception {
+    public String postLogout(String header) throws Exception {
 
-        jwtUtil.validateToken(accessToken);
-        String emailAddr = jwtUtil.getEmail(accessToken);
+        Map<String, Object> userInfo = validateToken(header);
 
-        Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
+
+        Integer personId = (Integer)userInfo.get("personId");
+
+        Optional<Person> personOptional = personService.getPersonById(personId);
 
         if (!personOptional.isPresent()) {
-            throw new Exception("Email not registered");
+            throw new Exception("Person not registered");
         }
 
         Person person = personOptional.get();
@@ -105,4 +106,24 @@ public class AuthenticationService {
 
         return "User logged out";
     }
+
+    public Map<String, Object> validateToken(String authorizationHeader) throws Exception {
+        try {
+            String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
+            Integer personId = JwtUtil.getPersonId(token);
+            String newAccessToken = JwtUtil.generateAccessToken(personId);
+            String newRefreshToken = JwtUtil.generateRefreshToken(personId);
+
+            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
+
+            Map<String, Object> tokens = new HashMap<>();
+            tokens.put("personId", personId);
+            tokens.put("accessToken", newAccessToken);
+            tokens.put("refreshToken", newRefreshToken);
+            return tokens;
+        } catch (JwtException e) {
+            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+        }
+    }
+
 }

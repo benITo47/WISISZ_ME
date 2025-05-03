@@ -13,7 +13,7 @@ public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "team_id")
-    private Integer teamId;
+    private Integer id;
 
     @Column(name = "team_name", nullable = false)
     private String teamName;
@@ -26,12 +26,12 @@ public class Team {
     @JsonIgnore
     private List<Operation> operations;
 
-    public Integer getTeamId() {
-        return teamId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setTeamId(Integer teamId) {
-        this.teamId = teamId;
+    public void setId(Integer teamId) {
+        this.id = teamId;
     }
 
     public String getTeamName() {
