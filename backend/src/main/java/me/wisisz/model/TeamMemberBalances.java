@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import me.wisisz.util.TeamMemberBalancesId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Represents a view in the database that stores balances for team members.
@@ -21,7 +21,8 @@ import me.wisisz.util.TeamMemberBalancesId;
  * - balance: Stores the financial balance for the team member.
  * 
  * Notes:
- * - This entity is read-only and does not allow modification since it represents a database view.
+ * - This entity is read-only and does not allow modification since it
+ * represents a database view.
  */
 @Entity
 @Table(name = "team_member_balances", schema = "wisiszme")
@@ -30,14 +31,17 @@ public class TeamMemberBalances implements Serializable {
     @Column(name = "id")
     private Integer id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private TeamMember teamMember;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
@@ -51,10 +55,12 @@ public class TeamMemberBalances implements Serializable {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
-    public TeamMemberBalances() {}
+    public TeamMemberBalances() {
+    }
 
     // Constructor for initializing all fields
-    public TeamMemberBalances(Team team, TeamMember teamMember, Person person, String firstName, String lastName, BigDecimal balance) {
+    public TeamMemberBalances(Team team, TeamMember teamMember, Person person, String firstName, String lastName,
+            BigDecimal balance) {
         this.team = team;
         this.teamMember = teamMember;
         this.person = person;

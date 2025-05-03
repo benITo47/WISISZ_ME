@@ -47,15 +47,16 @@ public class TeamMemberBalancesController {
      * Retrieves balances for a specific team.
      * 
      * @param team chosen team.
-     * @return Response entity containing a list of balances for the team members, or a 404 status if no data is found.
+     * @return Response entity containing a list of balances for the team members,
+     *         or a 404 status if no data is found.
      */
-    @GetMapping("/team")
-    public ResponseEntity<List<TeamMemberBalances>> getBalancesByTeam(@RequestBody Team team) {
-    List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(team);
+    @GetMapping("/{teamId}")
+    public ResponseEntity<List<TeamMemberBalances>> getBalancesByTeam(@PathVariable Long teamId) {
+        List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(teamId);
 
-    if (balances.isEmpty()) {
-        return ResponseEntity.notFound().build();
+        if (balances.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(balances);
     }
-    return ResponseEntity.ok(balances);
-}
 }
