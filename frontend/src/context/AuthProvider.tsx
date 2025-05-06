@@ -11,7 +11,6 @@ import api, { CustomAxiosRequestConfig } from "../api/api";
 
 interface User {
   name: string;
-  avatar: number;
 }
 
 interface AuthContextType {
