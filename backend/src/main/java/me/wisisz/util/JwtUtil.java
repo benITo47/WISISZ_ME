@@ -79,12 +79,12 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
 
-            Integer personId = (Integer) claims.get("personId");
-
-            if (personId == null) {
-                throw new Exception("Invalid token: personId is missing");
+            String subject = claims.getSubject();
+            if (subject == null) {
+                throw new Exception("Invalid token: subject is missing");
             }
 
+            Integer personId = Integer.valueOf(subject);
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("personId", personId);
             return userInfo;
@@ -95,6 +95,7 @@ public class JwtUtil {
             throw new Exception("Invalid access token: " + e.getMessage());
         }
     }
+
 
 
 

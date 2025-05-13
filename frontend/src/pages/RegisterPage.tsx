@@ -1,104 +1,128 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Container from "../components/Container";
 import InputField from "../components/InputField";
 import Button from "../components/Button";
-import Container from "../components/Container";
-import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import axios from "axios";
 import { useAuth } from "../context/AuthProvider";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-const Register = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailAddr, setEmail] = useState("");
-  const [fname, setFname] = useState("");
-  const [lname, setLname] = useState("");
-  const { setToken, setIsLoggedIn, setUser } = useAuth();
-  
+const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
 
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [emailAddr, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { setToken, setIsLoggedIn, setUser } = useAuth();
+
   const handleRegister = async () => {
-    if (!username || !emailAddr || !password || !fname || !lname) return;
+    if (password !== confirmPassword) {
+      setError("Hasła nie są takie same.");
+      return;
+    }
 
     try {
       const response = await api.post("/auth/register", {
-        username,
-        emailAddr,
-        password,
-        fname,
-        lname
+        fname: fname,
+        lname: lname,
+        emailAddr: emailAddr,
+        password: password,
       });
 
-      
-      navigate("/account");
+      const accessToken = response.headers["accesstoken"];
+      setToken(accessToken);
+      setIsLoggedIn(true);
+
     } catch (error: any) {
-      if (error.response) {
-        alert(
-          `Błąd: ${error.response.data.message || error.response.statusText}`
-        );
+      if (axios.isAxiosError?.(error)) {
+        setError(error.response?.data?.message || "Błąd rejestracji.");
       } else {
-        alert("Nie udało się połączyć z serwerem.");
+        setError("Nieoczekiwany błąd.");
       }
-      console.error(error);
     }
+
+    console.log("Rejestracja użytkownika:", {
+      fname,
+      lname,
+      emailAddr,
+      password,
+    });
+
+    
+    navigate("/account");
   };
 
   return (
-    <Container className="my-3 flex flex-col">
-      <h2 className="mb-5">Sign up</h2>
+    <Container
+      style={{ marginTop: "50px", padding: "2rem", maxWidth: "500px" }}
+    >
+      <h2
+        style={{ textAlign: "center", marginBottom: "2rem", color: "#e2f989" }}
+      >
+        Załóż konto
+      </h2>
+
       <InputField
         value={fname}
         onChange={setFname}
-        placeholder="Name"
+        placeholder="Imię"
         required
       />
+
       <InputField
         value={lname}
         onChange={setLname}
-        placeholder="Surname"
+        placeholder="Nazwisko"
         required
       />
-      <InputField
-        value={username}
-        onChange={setUsername}
-        placeholder="Username"
-        required
-      />
+
       <InputField
         value={emailAddr}
         onChange={setEmail}
-        placeholder="Email"
+        placeholder="Adres e-mail"
+        type="email"
         required
       />
+
       <InputField
         value={password}
         onChange={setPassword}
-        placeholder="Password"
+        placeholder="Hasło"
         type="password"
         required
       />
-      <div className="flex flex-col justify-end ml-auto">
-        <Button
-          onClick={handleRegister}
-          style={{ fontSize: "12px", margin: "auto" }}
-        >
-          Sign up
-        </Button>
-      </div>
-      <div className="mt-5">
-        <p>
-          Already have an account?{" "}
-          <Button
-            to="/login"
-            style={{ fontSize: "10px", margin: "auto", padding: "6px" }}
-          >
-            Log in
-          </Button>
+
+      <InputField
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        placeholder="Powtórz hasło"
+        type="password"
+        required
+      />
+
+      {error && (
+        <p style={{ color: "red", textAlign: "center", margin: "1rem 0" }}>
+          {error}
         </p>
+      )}
+
+      <div
+        style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}
+      >
+        <Button onClick={handleRegister}>Zarejestruj się</Button>
       </div>
+
+      <p style={{ textAlign: "center", marginTop: "1rem" }}>
+        Masz już konto?{" "}
+        <Button to="/login" style={{ fontSize: "14px" }}>
+          Zaloguj się
+        </Button>
+      </p>
     </Container>
   );
 };
 
-export default Register;
+export default RegisterPage;

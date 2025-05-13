@@ -50,10 +50,10 @@ public class AuthenticationController {
 
             ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
                     .httpOnly(true)       // Brak dostępu z poziomu JS (ochrona przed XSS)
-                    .secure(true)         // Tylko przez HTTPS
+                    .secure(false)         // Tylko przez HTTPS
                     .path("/")            // Dostępne dla całej domeny
                     .maxAge(Duration.ofDays(1)) // Czas życia ciasteczka (np. 1 dzień)
-                    .sameSite("Strict")   // Ochrona przed CSRF (lub "Lax", jeśli masz przekierowania)
+                    .sameSite("Lax")   // Ochrona przed CSRF (lub "Lax", jeśli masz przekierowania)
                     .build();
 
             HttpHeaders headers = new HttpHeaders();
@@ -78,24 +78,19 @@ public class AuthenticationController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> postLogout(
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
         try {
-            if (authorizationHeader != null) {
-                authenticationService.postLogoutByAccessToken(authorizationHeader);
-            } else if (refreshToken != null) {
+            if (refreshToken != null) {
                 authenticationService.postLogoutByRefreshToken(refreshToken);
-            } else {
-                throw new Exception("No token provided for logout");
             }
-
 
             ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(false) // false dla dev, true na produkcji
                     .path("/")
                     .maxAge(0)
+                    .sameSite("Lax")
                     .build();
 
             HttpHeaders headers = new HttpHeaders();
@@ -104,32 +99,29 @@ public class AuthenticationController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(Map.of("message", "Logged out successfully"));
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", e.getMessage()));
         }
     }
 
+
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refreshTokens(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
-
         try {
-
             if (refreshToken == null) {
                 throw new Exception("No refresh token provided");
             }
-
             Map<String, String> newTokens = authenticationService.refreshTokens(refreshToken);
 
 
             ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", newTokens.get("refreshToken"))
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofDays(1))
-                    .sameSite("Strict")
+                    .sameSite("Lax")
                     .build();
 
             HttpHeaders headers = new HttpHeaders();

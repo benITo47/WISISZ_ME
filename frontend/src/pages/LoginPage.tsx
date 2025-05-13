@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import InputField from "../components/InputField";
 import Button from "../components/Button";
 import Container from "../components/Container";
@@ -10,15 +10,15 @@ const Login = () => {
   const [emailAddr, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { setToken, setIsLoggedIn, setUser } = useAuth();
+  const { setToken, setIsLoggedIn } = useAuth();
 
   const handleLogin = async () => {
     if (!emailAddr || !password) return;
 
     try {
       const response = await api.post("/auth/login", {
-        emailAddr,
-        password,
+        emailAddr: emailAddr,
+        password: password,
       });
 
       const accessToken = response.headers["accesstoken"];

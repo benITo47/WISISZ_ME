@@ -7,6 +7,7 @@ import me.wisisz.service.AuthenticationService;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
+import me.wisisz.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,16 +31,37 @@ public class MeSocialController {
     private AuthenticationService authenticationService;
 
     @GetMapping("/profile")
-    public ResponseEntity<Person> getProfile(@RequestHeader("Authorization") String authorizationHeader)
-            throws Exception {
+    public ResponseEntity<?> getProfile(@RequestHeader(value = "Authorization", required = false) String authorizationHeader)
+            {
 
-        Map<String, Object> personInfo = authenticationService.validateToken(authorizationHeader);
-        Optional<Person> person = personService.getPersonById((Integer) personInfo.get("personId"));
-
-        if (person.isPresent()) {
-            return new ResponseEntity<>(person.get(), HttpStatus.OK);
+        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Unauthorized"));
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        try {
+            Map<String, Object> personInfo = authenticationService.validateToken(authorizationHeader);
+            Optional<Person> person = personService.getPersonById((Integer) personInfo.get("personId"));
+
+            if (person.isPresent()) {
+                Person p = person.get();
+                String newAccessToken = JwtUtil.generateAccessToken(p.getId());
+                return ResponseEntity.ok(Map.of(
+                        "fname", p.getFname(),
+                        "lname", p.getLname(),
+                        "emailAddr", p.getEmailAddr(),
+                        "id", p.getId(),
+                        "token", newAccessToken
+                ));
+
+            }
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Unauthorized"));
+        }
     }
 
     @GetMapping("/teams")

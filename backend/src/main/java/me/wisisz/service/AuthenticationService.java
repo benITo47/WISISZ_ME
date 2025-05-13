@@ -103,14 +103,19 @@ public class AuthenticationService {
     }
 
 
-    public String postLogoutByRefreshToken(String refreshToken) throws Exception {
-        RefreshToken token = refreshTokenService.getRefreshToken(refreshToken)
-                .orElseThrow(() -> new Exception("Invalid or expired refresh token"));
+    public String postLogoutByRefreshToken(String refreshToken) {
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
 
-        refreshTokenService.deleteRefreshToken(token);
+        if (tokenOpt.isPresent()) {
+            refreshTokenService.deleteRefreshToken(tokenOpt.get());
+            System.out.println("[DEBUG] 🗑️ Refresh token deleted.");
+        } else {
+            System.out.println("[DEBUG] ℹ️ Refresh token not found in DB. Probably already deleted.");
+        }
 
         return "User logged out using refresh token";
     }
+
 
 
 
@@ -134,27 +139,49 @@ public class AuthenticationService {
     }
 
     public Map<String, String> refreshTokens(String refreshToken) throws Exception {
-        // Walidacja refresh tokena (np. JWT lub specjalna metoda w JwtUtil)
-        Map<String, Object> claims = validateToken(refreshToken);
+        System.out.println("[DEBUG] 🔄 Start refreshing tokens");
+        System.out.println("[DEBUG] Refresh token received: " + refreshToken);
+
+        // 1. Walidacja JWT
+        Map<String, Object> claims;
+        try {
+            claims = validateToken(refreshToken);
+            System.out.println("[DEBUG] ✅ Token claims: " + claims);
+        } catch (Exception e) {
+            System.out.println("[DEBUG] ❌ Token validation failed: " + e.getMessage());
+            throw new Exception("Invalid refresh token");
+        }
+
         Integer personId = (Integer) claims.get("personId");
+        System.out.println("[DEBUG] 👤 Extracted personId: " + personId);
 
-        // Dodatkowa weryfikacja, czy refresh token faktycznie istnieje w bazie (ochrona przed token replay attacks)
-        RefreshToken tokenEntity = refreshTokenService.getRefreshToken(refreshToken)
-                .orElseThrow(() -> new Exception("Refresh token not found in database"));
+        // 2. Szukanie w bazie
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
+        if (tokenOpt.isEmpty()) {
+            System.out.println("[DEBUG] ❌ Refresh token not found in DB");
+            throw new Exception("Refresh token not found in database");
+        }
+        System.out.println("[DEBUG] ✅ Refresh token found in DB");
 
-        // Jeśli dotarliśmy tutaj, token jest poprawny i w bazie — odświeżamy
+        // 3. Generowanie nowych tokenów
         String newAccessToken = JwtUtil.generateAccessToken(personId);
         String newRefreshToken = JwtUtil.generateRefreshToken(personId);
+        System.out.println("[DEBUG] 🆕 Generated new accessToken: " + newAccessToken);
+        System.out.println("[DEBUG] 🆕 Generated new refreshToken: " + newRefreshToken);
 
-        // Usuwamy stary refresh token i zapisujemy nowy
-        refreshTokenService.deleteRefreshToken(tokenEntity);
+        // 4. Usuwanie starego i zapis nowego
+        refreshTokenService.deleteRefreshToken(tokenOpt.get());
+        System.out.println("[DEBUG] 🗑️ Old refresh token deleted from DB");
+
         refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
+        System.out.println("[DEBUG] 💾 New refresh token saved to DB");
 
         return Map.of(
                 "accessToken", newAccessToken,
                 "refreshToken", newRefreshToken
         );
     }
+
 
 
 
