@@ -26,7 +26,18 @@ public class Team {
     @JsonIgnore
     private List<Operation> operations;
 
-    public Integer getId() {
+    @Column(name = "invite_code", nullable = false)
+    private String inviteCode;
+
+    public String getInviteCode() {
+		return inviteCode;
+	}
+
+	public void setInviteCode(String inviteCode) {
+		this.inviteCode = inviteCode;
+	}
+
+	public Integer getId() {
         return id;
     }
 
