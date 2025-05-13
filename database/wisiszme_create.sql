@@ -87,8 +87,10 @@ create index refresh_token_idx_1 on wisiszme.refresh_token (person_id asc);
 -- Table: team
 create table wisiszme.team
 (
-    team_id   int  not null generated always as identity,
-    team_name text not null,
+    team_id     int  not null generated always as identity,
+    team_name   text not null,
+    invite_code text generated always as (upper(substring(encode(sha256(team_id::text::bytea), 'hex') from 1 for
+                                                          8))) stored unique,
     constraint team_pk primary key (team_id)
 );
 
