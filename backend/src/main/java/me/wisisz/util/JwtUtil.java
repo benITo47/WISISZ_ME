@@ -1,5 +1,6 @@
 package me.wisisz.util;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Claims;
@@ -9,6 +10,8 @@ import java.security.Key;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JwtUtil {
 
@@ -68,5 +71,33 @@ public class JwtUtil {
             throw new Exception("Invalid or expired refresh token: " + e.getMessage());
         }
     }
+
+    public static Map<String, Object> validateAndParse(String token) throws Exception {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(KEY)
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String subject = claims.getSubject();
+            if (subject == null) {
+                throw new Exception("Invalid token: subject is missing");
+            }
+
+            Integer personId = Integer.valueOf(subject);
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("personId", personId);
+            return userInfo;
+
+        } catch (ExpiredJwtException e) {
+            throw new Exception("Access token expired");
+        } catch (JwtException e) {
+            throw new Exception("Invalid access token: " + e.getMessage());
+        }
+    }
+
+
+
+
 
 }

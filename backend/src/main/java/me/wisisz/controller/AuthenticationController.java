@@ -1,12 +1,15 @@
 package me.wisisz.controller;
 
+import me.wisisz.model.Person;
 import me.wisisz.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Map;
 
 @RestController
@@ -25,8 +28,9 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> postRegister(@RequestBody Map<String, String> registerRequest) {
         try {
-            String message = authenticationService.postRegister(registerRequest.get("emailAddr"), registerRequest.get("password"), registerRequest.get("fname"), registerRequest.get("lname"));
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+            authenticationService.postRegister(registerRequest.get("emailAddr"), registerRequest.get("password"), registerRequest.get("fname"), registerRequest.get("lname"));
+            ResponseEntity<Map<String, String>> response = postLogin(registerRequest);
+            return response;
 
         } catch (Exception e) {
             return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -44,9 +48,19 @@ public class AuthenticationController {
         try {
             Map<String, String> tokens = authenticationService.postLogin(loginRequest.get("emailAddr"), loginRequest.get("password"));
 
+            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
+                    .httpOnly(true)       // Brak dostępu z poziomu JS (ochrona przed XSS)
+                    .secure(false)         // Tylko przez HTTPS
+                    .path("/")            // Dostępne dla całej domeny
+                    .maxAge(Duration.ofDays(1)) // Czas życia ciasteczka (np. 1 dzień)
+                    .sameSite("Lax")   // Ochrona przed CSRF (lub "Lax", jeśli masz przekierowania)
+                    .build();
+
             HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
             headers.set("accessToken", tokens.get("accessToken"));
-            headers.set("refreshToken", tokens.get("refreshToken"));
+
+
             
             return new ResponseEntity<>(headers, HttpStatus.OK);
         } catch (Exception e) {
@@ -63,13 +77,66 @@ public class AuthenticationController {
      * @return ResponseEntity containing either OK status or an error message.
      */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> postLogout(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<Map<String, String>> postLogout(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+
         try {
-            String message = authenticationService.postLogout(authorizationHeader);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+            if (refreshToken != null) {
+                authenticationService.postLogoutByRefreshToken(refreshToken);
+            }
+
+            ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                    .httpOnly(true)
+                    .secure(false) // false dla dev, true na produkcji
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("Lax")
+                    .build();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(Map.of("message", "Logged out successfully"));
         } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", e.getMessage()));
         }
     }
+
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, String>> refreshTokens(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        try {
+            if (refreshToken == null) {
+                throw new Exception("No refresh token provided");
+            }
+            Map<String, String> newTokens = authenticationService.refreshTokens(refreshToken);
+
+
+            ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", newTokens.get("refreshToken"))
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(Duration.ofDays(1))
+                    .sameSite("Lax")
+                    .build();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(Map.of("accessToken", newTokens.get("accessToken")));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+
 
 }

@@ -22,9 +22,13 @@ public class AuthenticationService {
     @Autowired
     private RefreshTokenService refreshTokenService;
 
+
+
+
+
     //private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public String postRegister(String emailAddr, String password, String fname, String lname) throws Exception {
+    public void postRegister(String emailAddr, String password, String fname, String lname) throws Exception {
 
         Optional<Person> existingPerson = personService.getPersonByEmail(emailAddr);
         if (existingPerson.isPresent()) {
@@ -41,7 +45,6 @@ public class AuthenticationService {
 
         personService.savePerson(person);
 
-        return "Person registered";
     }
 
     public Map<String, String> postLogin(String emailAddr, String password) throws Exception {
@@ -80,50 +83,106 @@ public class AuthenticationService {
         return tokens;
     }
 
-    public String postLogout(String header) throws Exception {
-
-        Map<String, Object> userInfo = validateToken(header);
 
 
-        Integer personId = (Integer)userInfo.get("personId");
+    public String postLogoutByAccessToken(String authorizationHeader) throws Exception {
+        String token = extractToken(authorizationHeader); // Odcina "Bearer " jeśli trzeba
 
-        Optional<Person> personOptional = personService.getPersonById(personId);
+        Map<String, Object> userInfo = JwtUtil.validateAndParse(token); // Walidacja JWT
+        Integer personId = (Integer) userInfo.get("personId");
 
-        if (!personOptional.isPresent()) {
-            throw new Exception("Person not registered");
-        }
+        Person person = personService.getPersonById(personId)
+                .orElseThrow(() -> new Exception("Person not registered"));
 
-        Person person = personOptional.get();
+        RefreshToken refreshToken = refreshTokenService.getRefreshTokenByPerson(person)
+                .orElseThrow(() -> new Exception("No registered tokens for this person"));
 
-        Optional<RefreshToken> tokenOptional = refreshTokenService.getRefreshTokenByPerson(person);
-
-        if (!tokenOptional.isPresent()) {
-            throw new Exception("No registered tokens for this person");
-        }
-
-        RefreshToken refreshToken = tokenOptional.get();
         refreshTokenService.deleteRefreshToken(refreshToken);
 
-        return "User logged out";
+        return "User logged out using access token";
     }
+
+
+    public String postLogoutByRefreshToken(String refreshToken) {
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
+
+        if (tokenOpt.isPresent()) {
+            refreshTokenService.deleteRefreshToken(tokenOpt.get());
+            System.out.println("[DEBUG] 🗑️ Refresh token deleted.");
+        } else {
+            System.out.println("[DEBUG] ℹ️ Refresh token not found in DB. Probably already deleted.");
+        }
+
+        return "User logged out using refresh token";
+    }
+
+
+
+
 
     public Map<String, Object> validateToken(String authorizationHeader) throws Exception {
         try {
             String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
-            Integer personId = JwtUtil.getPersonId(token);
-            String newAccessToken = JwtUtil.generateAccessToken(personId);
-            String newRefreshToken = JwtUtil.generateRefreshToken(personId);
 
-            refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
-
-            Map<String, Object> tokens = new HashMap<>();
-            tokens.put("personId", personId);
-            tokens.put("accessToken", newAccessToken);
-            tokens.put("refreshToken", newRefreshToken);
+            Map<String, Object> tokens = JwtUtil.validateAndParse(token);
             return tokens;
         } catch (JwtException e) {
             throw new RuntimeException("Invalid or expired token: " + e.getMessage());
         }
     }
+
+    private String extractToken(String header) throws Exception {
+        if (header == null || header.isEmpty()) {
+            throw new Exception("Authorization header is missing");
+        }
+        return header.startsWith("Bearer ") ? header.substring(7) : header;
+    }
+
+    public Map<String, String> refreshTokens(String refreshToken) throws Exception {
+        System.out.println("[DEBUG] 🔄 Start refreshing tokens");
+        System.out.println("[DEBUG] Refresh token received: " + refreshToken);
+
+        // 1. Walidacja JWT
+        Map<String, Object> claims;
+        try {
+            claims = validateToken(refreshToken);
+            System.out.println("[DEBUG] ✅ Token claims: " + claims);
+        } catch (Exception e) {
+            System.out.println("[DEBUG] ❌ Token validation failed: " + e.getMessage());
+            throw new Exception("Invalid refresh token");
+        }
+
+        Integer personId = (Integer) claims.get("personId");
+        System.out.println("[DEBUG] 👤 Extracted personId: " + personId);
+
+        // 2. Szukanie w bazie
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
+        if (tokenOpt.isEmpty()) {
+            System.out.println("[DEBUG] ❌ Refresh token not found in DB");
+            throw new Exception("Refresh token not found in database");
+        }
+        System.out.println("[DEBUG] ✅ Refresh token found in DB");
+
+        // 3. Generowanie nowych tokenów
+        String newAccessToken = JwtUtil.generateAccessToken(personId);
+        String newRefreshToken = JwtUtil.generateRefreshToken(personId);
+        System.out.println("[DEBUG] 🆕 Generated new accessToken: " + newAccessToken);
+        System.out.println("[DEBUG] 🆕 Generated new refreshToken: " + newRefreshToken);
+
+        // 4. Usuwanie starego i zapis nowego
+        refreshTokenService.deleteRefreshToken(tokenOpt.get());
+        System.out.println("[DEBUG] 🗑️ Old refresh token deleted from DB");
+
+        refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
+        System.out.println("[DEBUG] 💾 New refresh token saved to DB");
+
+        return Map.of(
+                "accessToken", newAccessToken,
+                "refreshToken", newRefreshToken
+        );
+    }
+
+
+
 
 }
