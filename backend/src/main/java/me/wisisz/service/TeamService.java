@@ -110,7 +110,7 @@ public class TeamService {
 
         BigDecimal totalAmount = new BigDecimal(data.get("totalAmount"));
         Optional<Team> team = teamRepository.findById(teamId);
-        Optional<Category> category = categoryRepository.findById(Integer.parseInt((data.get("cathegoryId"))));
+        Optional<Category> category = categoryRepository.findById(Integer.parseInt((data.get("categoryId"))));
 
         Operation newOperation = new Operation();
         newOperation.setTeam(team.get());
