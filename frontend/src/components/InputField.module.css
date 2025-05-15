@@ -87,13 +87,3 @@
 }
 
 /* Error message */
-.errorWrapper {
-  min-height: 18px;
-  padding-left: 4px;
-  margin-bottom: 4px;
-}
-
-.errorMessage {
-  color: #ff6b6b;
-  font-size: 12px;
-}
