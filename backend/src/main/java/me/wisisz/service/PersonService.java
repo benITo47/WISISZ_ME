@@ -1,8 +1,10 @@
 package me.wisisz.service;
 
+import me.wisisz.dto.TeamDTO;
+
 import me.wisisz.model.Person;
-import me.wisisz.model.Team;
 import me.wisisz.repository.PersonRepository;
+import me.wisisz.repository.OperationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,9 @@ public class PersonService {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private OperationRepository operationRepository;
+
     public List<Person> getAllPersons() {
         return personRepository.findAll();
     }
@@ -28,8 +33,8 @@ public class PersonService {
         return personRepository.findByEmailAddr(emailAddr);
     }
 
-    public Optional<List<Team>> getPersonTeams(Integer personId) {
-        return personRepository.findById(personId).map(p -> p.getTeams());
+    public Optional<List<TeamDTO>> getPersonTeams(Integer personId) {
+        return personRepository.findById(personId).map(p -> p.getTeams().stream().map(t -> new TeamDTO(t, operationRepository.findFirstByTeamIdOrderByOperationDateDesc(t.getId()))).toList());
     }
 
     public Person savePerson(Person person) {

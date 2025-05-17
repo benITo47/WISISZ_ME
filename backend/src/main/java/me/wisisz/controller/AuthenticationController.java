@@ -102,7 +102,7 @@ public class AuthenticationController {
     }
 
     /**
-     * /auth/login, POST - update refresh and access tokens
+     * /auth/refresh, POST - update refresh and access tokens
      * 
      * Requires "refreshToken" to be in HTTP only cookies
      *
