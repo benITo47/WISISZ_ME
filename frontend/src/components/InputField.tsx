@@ -63,6 +63,7 @@ const InputField: React.FC<InputFieldProps> = ({
           </label>
         )}
       </div>
+
       <div className={styles.errorWrapper}>
         {error && <span className={styles.errorMessage}>{error}</span>}
       </div>
