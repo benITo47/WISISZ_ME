@@ -21,13 +21,11 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     /**
-     * /auth/register, POST - Login method to authenticate the user using email and
-     * password.
+     * /auth/register, POST - Register user, then call login handler
      * 
-     * @param registerRequest - Map containing: email ("emailAddr"), password
-     *                        ("password"), firstname ("fname") and lastname
-     *                        ("lname") from the request body.
-     * @return ResponseEntity containing either CREATED status or an error message.
+     * @param registerRequest - JSON with "emailAddr", "password", "fname", "lname"
+     *
+     * @return result of login handler
      */
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest) {
@@ -45,10 +43,9 @@ public class AuthenticationController {
      * /auth/login, POST - Login method to authenticate the user using email and
      * password.
      * 
-     * @param loginRequest - Map containing the email ("emailAddr") and password
-     *                     ("password") from the request body.
-     * @return ResponseEntity containing either the JWT tokens ("accessToken",
-     *         "refreshToken") or an error message in the header.
+     * @param loginRequest - JSON with "emailAddr", "password"
+     *
+     * @return ResponseEntity containing the access token ("accessToken")
      */
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> loginRequest) {
@@ -77,8 +74,9 @@ public class AuthenticationController {
     /**
      * /auth/logout, POST - Logout method.
      * 
-     * @param authorizationHeader - token from the authorization header.
-     * @return ResponseEntity containing either OK status or an error message.
+     * Requires "refreshToken" to be in HTTP only cookies
+     *
+     * @return ResponseEntity containing "message"
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletResponse response,
@@ -104,6 +102,13 @@ public class AuthenticationController {
                 .body(Map.of("message", "Logged out successfully"));
     }
 
+    /**
+     * /auth/login, POST - update refresh and access tokens
+     * 
+     * Requires "refreshToken" to be in HTTP only cookies
+     *
+     * @return ResponseEntity containing the access token ("accessToken")
+     */
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refreshTokens(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
