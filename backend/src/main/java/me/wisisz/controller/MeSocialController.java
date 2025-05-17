@@ -7,11 +7,12 @@ import me.wisisz.service.AuthenticationService;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
-import me.wisisz.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +27,6 @@ public class MeSocialController {
 
     @Autowired
     private TeamService teamService;
-
-    @Autowired
-    private AuthenticationService authenticationService;
 
     /**
      * GET /api/me/profile
@@ -48,36 +46,22 @@ public class MeSocialController {
      *         }
      */
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+    public ResponseEntity<?> getProfile(HttpServletRequest request) {
+        Integer meId = (Integer) request.getAttribute("personId");
+        Optional<Person> person = personService.getPersonById(meId);
 
-        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Unauthorized"));
+        if (person.isPresent()) {
+            Person p = person.get();
+            return ResponseEntity.ok(
+                    Map.of(
+                            "fname", p.getFname(),
+                            "lname", p.getLname(),
+                            "emailAddr", p.getEmailAddr(),
+                            "id", p.getId()));
+
         }
 
-        try {
-            Map<String, Object> personInfo = authenticationService.validateToken(authorizationHeader);
-            Optional<Person> person = personService.getPersonById((Integer) personInfo.get("personId"));
-
-            if (person.isPresent()) {
-                Person p = person.get();
-                String newAccessToken = JwtUtil.generateAccessToken(p.getId());
-                return ResponseEntity.ok(Map.of(
-                        "fname", p.getFname(),
-                        "lname", p.getLname(),
-                        "emailAddr", p.getEmailAddr(),
-                        "id", p.getId(),
-                        "token", newAccessToken));
-
-            }
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Unauthorized"));
-        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     /**
@@ -103,11 +87,11 @@ public class MeSocialController {
      */
 
     @GetMapping("/teams")
-    public ResponseEntity<List<Team>> getTeams(@RequestHeader("Authorization") String authorizationHeader)
+    public ResponseEntity<List<Team>> getTeams(HttpServletRequest request)
             throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Optional<List<Team>> teams = personService.getPersonTeams((Integer) meInfo.get("personId"));
+        Integer meId = (Integer) request.getAttribute("personId");
+        Optional<List<Team>> teams = personService.getPersonTeams(meId);
         if (teams.isPresent()) {
             return new ResponseEntity<>(teams.get(), HttpStatus.OK);
         }
@@ -136,11 +120,10 @@ public class MeSocialController {
      */
     @PostMapping("/teams")
     public ResponseEntity<Map<String, String>> createTeam(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @RequestBody Map<String, String> teamData) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
 
         try {
             String message = teamService.saveTeam(meId, teamData);
@@ -186,11 +169,10 @@ public class MeSocialController {
      */
     @GetMapping("/teams/{teamId}")
     public ResponseEntity<TeamWithMembersDTO> getTeamById(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -226,12 +208,11 @@ public class MeSocialController {
      */
     @PostMapping("/teams/{teamId}/members")
     public ResponseEntity<Map<String, String>> addTeamMember(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId,
             @RequestBody Map<String, String> memberData) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -267,12 +248,11 @@ public class MeSocialController {
      */
     @DeleteMapping("/teams/{teamId}/members/{personId}")
     public ResponseEntity<Map<String, String>> removeTeamMember(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId,
             @PathVariable Integer personId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,9 +27,6 @@ public class MeOperationsController {
 
     @Autowired
     private TeamMemberBalancesService teamMemberBalancesService;
-
-    @Autowired
-    private AuthenticationService authenticationService;
 
     /**
      * GET /api/me/teams/{teamId}/operations
@@ -64,11 +63,10 @@ public class MeOperationsController {
      */
     @GetMapping("")
     public ResponseEntity<List<OperationDTO>> getTeamOperations(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -110,12 +108,11 @@ public class MeOperationsController {
      */
     @PostMapping("")
     public ResponseEntity<Map<String, String>> addOperation(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId,
             @RequestBody Map<String, String> operationData) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -138,12 +135,11 @@ public class MeOperationsController {
      */
     @PutMapping("")
     public ResponseEntity<Map<String, String>> updateOperation(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId,
             @RequestBody Map<String, String> operationData) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -161,12 +157,11 @@ public class MeOperationsController {
      */
     @DeleteMapping("/{operationId}")
     public ResponseEntity<Map<String, String>> deleteOperation(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId,
             @PathVariable Integer operationId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -190,11 +185,10 @@ public class MeOperationsController {
      */
     @GetMapping("/balance")
     public ResponseEntity<List<TeamMemberBalances>> getTeamBalance(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -230,11 +224,10 @@ public class MeOperationsController {
      */
     @GetMapping("/transactions")
     public ResponseEntity<List<TransactionDTO>> getTeamTransactions(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Map<String, Object> meInfo = authenticationService.validateToken(authorizationHeader);
-        Integer meId = (Integer) meInfo.get("personId");
+        Integer meId = (Integer) request.getAttribute("personId");
         if (!teamService.isPersonInTeam(meId, teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
