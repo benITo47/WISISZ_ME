@@ -1,5 +1,9 @@
 package me.wisisz.service;
 
+import me.wisisz.exception.AppException.InvalidTokenException;
+import me.wisisz.exception.AppException.LoginFailedException;
+import me.wisisz.exception.AppException.NotFoundException;
+import me.wisisz.exception.AppException.UserAlreadyExistsException;
 import me.wisisz.model.Person;
 import me.wisisz.model.RefreshToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +28,11 @@ public class AuthenticationService {
 
     // private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public void register(String emailAddr, String password, String fname, String lname) throws Exception {
+    public Boolean register(String emailAddr, String password, String fname, String lname)
+            throws UserAlreadyExistsException {
         Optional<Person> existingPerson = personService.getPersonByEmail(emailAddr);
         if (existingPerson.isPresent()) {
-            throw new Exception("Email is already registered");
+            throw new UserAlreadyExistsException("User already exists");
         }
 
         // String hashedPassword =
@@ -40,14 +45,15 @@ public class AuthenticationService {
         person.setLname(lname);
 
         personService.savePerson(person);
+        return true;
     }
 
-    public Map<String, String> login(String emailAddr, String password) throws Exception {
+    public Map<String, String> login(String emailAddr, String password) throws LoginFailedException {
 
         Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
 
         if (!personOptional.isPresent()) {
-            throw new Exception("Email not registered");
+            throw new LoginFailedException("Email not registered");
         }
 
         Person person = personOptional.get();
@@ -60,7 +66,7 @@ public class AuthenticationService {
          */
 
         if (!password.equals(person.getPasswordHash())) {
-            throw new Exception("Invalid email or password");
+            throw new LoginFailedException("Invalid email or password");
         }
 
         String accessToken = jwtProvider.generateAccessToken(person.getId());
@@ -69,7 +75,7 @@ public class AuthenticationService {
         try {
             refreshTokenService.saveRefreshTokenToDatabase(refreshToken, person.getId());
         } catch (Exception e) {
-            throw new Exception("Failed to save Refresh Token");
+            throw new LoginFailedException("Failed to save Refresh Token");
         }
 
         Map<String, String> tokens = new HashMap<>();
@@ -79,28 +85,30 @@ public class AuthenticationService {
         return tokens;
     }
 
-    public String logout(String refreshToken) {
+    public Boolean logout(String refreshToken) {
         Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
 
-        if (tokenOpt.isPresent())
+        if (tokenOpt.isPresent()) {
             refreshTokenService.deleteRefreshToken(tokenOpt.get());
+            return true;
+        }
 
-        return "User logged out";
+        return false;
     }
 
     public static record TokenResponse(String accessToken, String refreshToken) {
     }
 
-    public TokenResponse refreshTokens(String refreshToken) throws Exception {
+    public TokenResponse refreshTokens(String refreshToken) throws InvalidTokenException, NotFoundException {
         if (!jwtProvider.isValid(refreshToken)) {
-            throw new Exception("Invalid or expired refresh token");
+            throw new InvalidTokenException("Invalid or expired refresh token");
         }
 
         Integer personId = Integer.valueOf(jwtProvider.getPersonId(refreshToken));
 
         Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
         if (tokenOpt.isEmpty()) {
-            throw new Exception("Refresh token not found in database");
+            throw new NotFoundException("Refresh token not found in database");
         }
 
         String newAccessToken = jwtProvider.generateAccessToken(personId);

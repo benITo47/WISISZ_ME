@@ -49,7 +49,6 @@ public class TeamService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
@@ -72,7 +71,7 @@ public class TeamService {
         return teamMemberRepository.existsByPersonIdAndTeamId(personId, teamId);
     }
 
-    public String saveTeam(Integer meId, Map<String, String> data) throws Exception{
+    public String saveTeam(Integer meId, Map<String, String> data) {
         Team newTeam = new Team();
         newTeam.setTeamName(data.get("teamName"));
         teamRepository.save(newTeam);
@@ -87,7 +86,7 @@ public class TeamService {
         return "Team added";
     }
 
-    public String saveTeamMember(Integer teamId, Map<String, String> data) throws Exception{
+    public String saveTeamMember(Integer teamId, Map<String, String> data) {
 
         TeamMember newTeamMember = new TeamMember();
         Optional<Team> team = teamRepository.findById(teamId);
@@ -100,13 +99,14 @@ public class TeamService {
         return "Team member added";
     }
 
-    public String removeTeamMember(Integer teamId, Integer personId) throws Exception{ //TODO: failsave; can't remove if balance not settled
+    public String removeTeamMember(Integer teamId, Integer personId) { // TODO: failsave; can't remove
+                                                                                        // if balance not settled
         Optional<TeamMember> member = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
         teamMemberRepository.delete(member.get());
         return "Team member removed";
     }
 
-    public String saveTeamOperation(Integer meId, Integer teamId, Map<String, String> data) throws Exception {
+    public String saveTeamOperation(Integer meId, Integer teamId, Map<String, String> data) {
 
         BigDecimal totalAmount = new BigDecimal(data.get("totalAmount"));
         Optional<Team> team = teamRepository.findById(teamId);
@@ -122,15 +122,15 @@ public class TeamService {
         newOperation.setOperationType(data.get("operationType"));
 
         operationRepository.save(newOperation);
-        
+
         switch (data.get("operationType")) {
             case "expense": { // Create operation entries for all members
                 Optional<TeamWithMembersDTO> teamWithMembers = getTeamWithMembersById(teamId);
                 BigDecimal totalShare = teamWithMembers
-                                        .map(teamDTO -> teamDTO.members().stream()
-                                        .map(TeamMemberDTO::defaultShare)
-                                        .reduce(BigDecimal.ZERO, BigDecimal::add))
-                                        .orElse(BigDecimal.ZERO);
+                        .map(teamDTO -> teamDTO.members().stream()
+                                .map(TeamMemberDTO::defaultShare)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .orElse(BigDecimal.ZERO);
                 BigDecimal oneShare = totalAmount.divide(totalShare, 2, RoundingMode.HALF_UP);
 
                 teamWithMembers.ifPresent(teamDTO -> {
@@ -138,10 +138,10 @@ public class TeamService {
 
                         Optional<TeamMember> teamMember = teamMemberRepository.findById(memberDTO.personId());
                         BigDecimal memberShare = oneShare.multiply(memberDTO.defaultShare()).negate();
-                        if(memberDTO.personId() == meId){
+                        if (memberDTO.personId() == meId) {
                             memberShare = memberShare.add(totalAmount);
                         }
-                        
+
                         OperationEntry entry = new OperationEntry();
                         entry.setOperation(newOperation);
                         entry.setTeamMember(teamMember.get());
@@ -156,10 +156,10 @@ public class TeamService {
             case "income": { // Create operation entries for all members
                 Optional<TeamWithMembersDTO> teamWithMembers = getTeamWithMembersById(teamId);
                 BigDecimal totalShare = teamWithMembers
-                                        .map(teamDTO -> teamDTO.members().stream()
-                                        .map(TeamMemberDTO::defaultShare)
-                                        .reduce(BigDecimal.ZERO, BigDecimal::add))
-                                        .orElse(BigDecimal.ZERO);
+                        .map(teamDTO -> teamDTO.members().stream()
+                                .map(TeamMemberDTO::defaultShare)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .orElse(BigDecimal.ZERO);
                 BigDecimal oneShare = totalAmount.divide(totalShare, 2, RoundingMode.HALF_UP);
 
                 teamWithMembers.ifPresent(teamDTO -> {
@@ -167,10 +167,10 @@ public class TeamService {
 
                         Optional<TeamMember> teamMember = teamMemberRepository.findById(memberDTO.personId());
                         BigDecimal memberShare = oneShare.multiply(memberDTO.defaultShare());
-                        if(memberDTO.personId() == meId){
+                        if (memberDTO.personId() == meId) {
                             memberShare = memberShare.subtract(totalAmount);
                         }
-                        
+
                         OperationEntry entry = new OperationEntry();
                         entry.setOperation(newOperation);
                         entry.setTeamMember(teamMember.get());
@@ -182,17 +182,18 @@ public class TeamService {
                 break;
             }
 
-            case "transfer": { // Create operation entries for 2 members - TODO: Greed algorithm to be added once team balance is implemented
+            case "transfer": { // Create operation entries for 2 members - TODO: Greed algorithm to be added
+                               // once team balance is implemented
                 Optional<TeamMember> sender = teamMemberRepository.findById(meId);
-                Optional<TeamMember> recipient = teamMemberRepository.findById(Integer.parseInt(data.get("recipientID")));
-                    
+                Optional<TeamMember> recipient = teamMemberRepository
+                        .findById(Integer.parseInt(data.get("recipientID")));
+
                 OperationEntry entry = new OperationEntry();
                 entry.setOperation(newOperation);
                 entry.setTeamMember(sender.get());
                 entry.setAmount(totalAmount);
 
                 operationEntryRepository.save(entry);
-
 
                 entry = new OperationEntry();
                 entry.setOperation(newOperation);

@@ -43,9 +43,9 @@ public class JwtMiddleware extends OncePerRequestFilter {
             }
 
             if (personId == null) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
-                response.getWriter().write("{\"message\":\"Unauthorized\"}");
+                response.getWriter().write("{\"message\":\"Invalid or expired access token\"}");
                 return;
             }
         }

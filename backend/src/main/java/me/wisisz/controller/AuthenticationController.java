@@ -1,5 +1,9 @@
 package me.wisisz.controller;
 
+import me.wisisz.exception.AppException.InvalidTokenException;
+import me.wisisz.exception.AppException.LoginFailedException;
+import me.wisisz.exception.AppException.NotFoundException;
+import me.wisisz.exception.AppException.UserAlreadyExistsException;
 import me.wisisz.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,15 +32,14 @@ public class AuthenticationController {
      * @return result of login handler
      */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest) {
-        try {
-            authenticationService.register(registerRequest.get("emailAddr"),
-                    registerRequest.get("password"),
-                    registerRequest.get("fname"), registerRequest.get("lname"));
-            return this.login(registerRequest);
-        } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerRequest)
+            throws UserAlreadyExistsException, LoginFailedException {
+        authenticationService.register(
+                registerRequest.get("emailAddr"),
+                registerRequest.get("password"),
+                registerRequest.get("fname"),
+                registerRequest.get("lname"));
+        return this.login(registerRequest);
     }
 
     /**
@@ -48,27 +51,23 @@ public class AuthenticationController {
      * @return ResponseEntity containing the access token ("accessToken")
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> loginRequest) {
-        try {
-            Map<String, String> tokens = authenticationService.login(loginRequest.get("emailAddr"),
-                    loginRequest.get("password"));
+    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> loginRequest) throws LoginFailedException {
+        Map<String, String> tokens = authenticationService.login(loginRequest.get("emailAddr"),
+                loginRequest.get("password"));
 
-            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(Duration.ofDays(1))
-                    .sameSite("Lax")
-                    .build();
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .sameSite("Lax")
+                .build();
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-            return ResponseEntity.ok().headers(headers).body(
-                    Map.of("accessToken", tokens.get("accessToken")));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
-        }
+        return ResponseEntity.ok().headers(headers).body(
+                Map.of("accessToken", tokens.get("accessToken")));
     }
 
     /**
@@ -111,31 +110,28 @@ public class AuthenticationController {
      */
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refreshTokens(
-            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+            @CookieValue(value = "refreshToken", required = false) String refreshToken)
+            throws NotFoundException, InvalidTokenException {
         if (refreshToken == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Refresh token missing"));
         }
 
-        try {
-            var newTokens = authenticationService.refreshTokens(refreshToken);
-            ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", newTokens.refreshToken())
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(Duration.ofDays(1))
-                    .sameSite("Lax")
-                    .build();
+        var newTokens = authenticationService.refreshTokens(refreshToken);
+        ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", newTokens.refreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .sameSite("Lax")
+                .build();
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
 
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(Map.of("accessToken", newTokens.accessToken()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
-        }
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(Map.of("accessToken", newTokens.accessToken()));
     }
 }

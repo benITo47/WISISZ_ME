@@ -40,7 +40,7 @@ public class TeamAuthorizationMiddleware extends OncePerRequestFilter {
             Integer personId = (Integer) request.getAttribute("personId");
             if (personId == null || !teamService.isPersonInTeam(personId, teamId)) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("{\"message\":\"Unauthorized\"}");
+                response.getWriter().write("{\"message\":\"You are not a member of this team\"}");
                 return;
             }
         }

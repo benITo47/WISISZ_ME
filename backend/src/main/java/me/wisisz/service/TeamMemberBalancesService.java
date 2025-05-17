@@ -1,6 +1,7 @@
 package me.wisisz.service;
 
 import me.wisisz.dto.TransactionDTO;
+import me.wisisz.exception.AppException.UnexpectedException;
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.repository.TeamMemberBalancesRepository;
 
@@ -44,7 +45,7 @@ public class TeamMemberBalancesService {
         return teamMemberBalancesRepository.findByTeamId(teamId);
     }
 
-    public List<TransactionDTO> getTeamTransactions(Long teamId) throws Exception {
+    public List<TransactionDTO> getTeamTransactions(Long teamId) throws UnexpectedException {
         List<TeamMemberBalances> balance = teamMemberBalancesRepository.findByTeamId(teamId);
         balance.sort((a, b) -> a.getBalance().compareTo(b.getBalance()));
 
@@ -57,7 +58,7 @@ public class TeamMemberBalancesService {
             TeamMemberBalances b = balance.get(begin);
             TeamMemberBalances e = balance.get(end);
             if (b.getBalance().signum() > 0 || e.getBalance().signum() < 0)
-                throw new Exception("Invalid balance");
+                throw new UnexpectedException("Invalid balance");
 
             BigDecimal owed = b.getBalance().abs().compareTo(e.getBalance().abs()) > 0 ? e.getBalance().abs()
                     : b.getBalance().abs();
