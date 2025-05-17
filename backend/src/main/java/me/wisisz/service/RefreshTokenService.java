@@ -1,6 +1,7 @@
 package me.wisisz.service;
 
 import me.wisisz.model.RefreshToken;
+import me.wisisz.exception.AppException.NotFoundException;
 import me.wisisz.model.Person;
 import me.wisisz.repository.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,11 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByPerson(person);
     }
 
-    public void saveRefreshTokenToDatabase(String refreshToken, Integer personId) throws Exception {
+    public void saveRefreshTokenToDatabase(String refreshToken, Integer personId) throws NotFoundException {
         Optional<Person> personOptional = personService.getPersonById(personId);
 
         if (!personOptional.isPresent()) {
-            throw new Exception("Invalid person");
+            throw new NotFoundException("Invalid person");
         }
 
         Person person = personOptional.get();
