@@ -23,6 +23,7 @@ create table wisiszme.operation
     operation_id   int            not null generated always as identity,
     team_id        int            not null,
     operation_date timestamptz    not null default now(),
+    title          text           not null,
     description    text           null,
     total_amount   decimal(10, 2) not null,
     category_id    int            not null,
