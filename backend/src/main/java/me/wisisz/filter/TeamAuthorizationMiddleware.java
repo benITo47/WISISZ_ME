@@ -1,7 +1,6 @@
 package me.wisisz.filter;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -12,39 +11,35 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.wisisz.service.JwtProvider;
+import me.wisisz.service.TeamService;
 
-@Order(1)
+@Order(2)
 @Component
-public class JwtMiddleware extends OncePerRequestFilter {
+public class TeamAuthorizationMiddleware extends OncePerRequestFilter {
+
     @Autowired
-    JwtProvider jwtProvider;
+    TeamService teamService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-
         String path = request.getRequestURI();
 
-        Boolean cond = path.startsWith("/api/me");
-        if (cond) {
-            String token = Optional.ofNullable(request.getHeader("Authorization"))
-                    .filter(h -> h.startsWith("Bearer "))
-                    .map(h -> h.substring(7))
-                    .orElse(null);
-
-            Integer personId = null;
-            if (token != null && jwtProvider.isValid(token)) {
-                try {
-                    personId = Integer.valueOf(jwtProvider.getPersonId(token));
-                } catch (Exception e) {
-                }
-                request.setAttribute("personId", personId);
+        if (path.startsWith("/api/me/teams/")) {
+            // /api/me/team/{teamId}/...
+            String[] segments = path.split("/");
+            Integer teamId = null;
+            try {
+                teamId = Integer.parseInt(segments[4]);
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"message\":\"Invalid team ID\"}");
+                return;
             }
 
-            if (personId == null) {
+            Integer personId = (Integer) request.getAttribute("personId");
+            if (personId == null || !teamService.isPersonInTeam(personId, teamId)) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType("application/json");
                 response.getWriter().write("{\"message\":\"Unauthorized\"}");
                 return;
             }

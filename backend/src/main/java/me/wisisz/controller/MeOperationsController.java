@@ -3,7 +3,6 @@ package me.wisisz.controller;
 import me.wisisz.dto.OperationDTO;
 import me.wisisz.dto.TransactionDTO;
 import me.wisisz.model.TeamMemberBalances;
-import me.wisisz.service.AuthenticationService;
 import me.wisisz.service.TeamMemberBalancesService;
 import me.wisisz.service.TeamService;
 
@@ -66,11 +65,6 @@ public class MeOperationsController {
             HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         Optional<List<OperationDTO>> operations = teamService.getTeamOperationsView(teamId);
         if (operations.isPresent()) {
             return new ResponseEntity<>(operations.get(), HttpStatus.OK);
@@ -113,10 +107,6 @@ public class MeOperationsController {
             @RequestBody Map<String, String> operationData) throws Exception {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         try {
             String message = teamService.saveTeamOperation(meId, teamId, operationData);
             return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
@@ -139,11 +129,6 @@ public class MeOperationsController {
             @PathVariable Integer teamId,
             @RequestBody Map<String, String> operationData) throws Exception {
 
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         throw new UnsupportedOperationException("TODO");
     }
 
@@ -160,11 +145,6 @@ public class MeOperationsController {
             HttpServletRequest request,
             @PathVariable Integer teamId,
             @PathVariable Integer operationId) throws Exception {
-
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         throw new UnsupportedOperationException("TODO");
     }
@@ -187,11 +167,6 @@ public class MeOperationsController {
     public ResponseEntity<List<TeamMemberBalances>> getTeamBalance(
             HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
-
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         List<TeamMemberBalances> balances = teamMemberBalancesService.getBalancesByTeam(Long.valueOf(teamId));
 
@@ -226,11 +201,6 @@ public class MeOperationsController {
     public ResponseEntity<List<TransactionDTO>> getTeamTransactions(
             HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
-
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         List<TransactionDTO> balances = teamMemberBalancesService.getTeamTransactions(Long.valueOf(teamId));
 

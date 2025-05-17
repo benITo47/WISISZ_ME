@@ -3,7 +3,6 @@ package me.wisisz.controller;
 import me.wisisz.dto.TeamWithMembersDTO;
 import me.wisisz.model.Person;
 import me.wisisz.model.Team;
-import me.wisisz.service.AuthenticationService;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
@@ -172,11 +171,6 @@ public class MeSocialController {
             HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
 
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         Optional<TeamWithMembersDTO> team = teamService.getTeamWithMembersById(teamId);
         if (team.isPresent()) {
             return new ResponseEntity<>(team.get(), HttpStatus.OK);
@@ -212,11 +206,6 @@ public class MeSocialController {
             @PathVariable Integer teamId,
             @RequestBody Map<String, String> memberData) throws Exception {
 
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         try {
             String message = teamService.saveTeamMember(teamId, memberData);
             return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
@@ -251,11 +240,6 @@ public class MeSocialController {
             HttpServletRequest request,
             @PathVariable Integer teamId,
             @PathVariable Integer personId) throws Exception {
-
-        Integer meId = (Integer) request.getAttribute("personId");
-        if (!teamService.isPersonInTeam(meId, teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         try {
             String message = teamService.removeTeamMember(teamId, personId);

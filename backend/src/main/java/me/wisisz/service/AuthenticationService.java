@@ -13,102 +13,102 @@ import java.util.Optional;
 @Service
 public class AuthenticationService {
 
-	@Autowired
-	private PersonService personService;
+    @Autowired
+    private PersonService personService;
 
-	@Autowired
-	private RefreshTokenService refreshTokenService;
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
-	@Autowired
-	private JwtProvider jwtProvider;
+    @Autowired
+    private JwtProvider jwtProvider;
 
-	// private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    // private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-	public void register(String emailAddr, String password, String fname, String lname) throws Exception {
-		Optional<Person> existingPerson = personService.getPersonByEmail(emailAddr);
-		if (existingPerson.isPresent()) {
-			throw new Exception("Email is already registered");
-		}
+    public void register(String emailAddr, String password, String fname, String lname) throws Exception {
+        Optional<Person> existingPerson = personService.getPersonByEmail(emailAddr);
+        if (existingPerson.isPresent()) {
+            throw new Exception("Email is already registered");
+        }
 
-		// String hashedPassword =
-		// passwordEncoder.encode(registerRequest.getPassword());
+        // String hashedPassword =
+        // passwordEncoder.encode(registerRequest.getPassword());
 
-		Person person = new Person();
-		person.setEmailAddr(emailAddr);
-		person.setPasswordHash(password);
-		person.setFname(fname);
-		person.setLname(lname);
+        Person person = new Person();
+        person.setEmailAddr(emailAddr);
+        person.setPasswordHash(password);
+        person.setFname(fname);
+        person.setLname(lname);
 
-		personService.savePerson(person);
-	}
+        personService.savePerson(person);
+    }
 
-	public Map<String, String> login(String emailAddr, String password) throws Exception {
+    public Map<String, String> login(String emailAddr, String password) throws Exception {
 
-		Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
+        Optional<Person> personOptional = personService.getPersonByEmail(emailAddr);
 
-		if (!personOptional.isPresent()) {
-			throw new Exception("Email not registered");
-		}
+        if (!personOptional.isPresent()) {
+            throw new Exception("Email not registered");
+        }
 
-		Person person = personOptional.get();
+        Person person = personOptional.get();
 
-		/*
-		 * Password hashing
-		 * if (!passwordEncoder.matches(password, person.getPasswordHash())) {
-		 * throw new Exception("Invalid email or password");
-		 * }
-		 */
+        /*
+         * Password hashing
+         * if (!passwordEncoder.matches(password, person.getPasswordHash())) {
+         * throw new Exception("Invalid email or password");
+         * }
+         */
 
-		if (!password.equals(person.getPasswordHash())) {
-			throw new Exception("Invalid email or password");
-		}
+        if (!password.equals(person.getPasswordHash())) {
+            throw new Exception("Invalid email or password");
+        }
 
-		String accessToken = jwtProvider.generateAccessToken(person.getId());
-		String refreshToken = jwtProvider.generateRefreshToken(person.getId());
+        String accessToken = jwtProvider.generateAccessToken(person.getId());
+        String refreshToken = jwtProvider.generateRefreshToken(person.getId());
 
-		try {
-			refreshTokenService.saveRefreshTokenToDatabase(refreshToken, person.getId());
-		} catch (Exception e) {
-			throw new Exception("Failed to save Refresh Token");
-		}
+        try {
+            refreshTokenService.saveRefreshTokenToDatabase(refreshToken, person.getId());
+        } catch (Exception e) {
+            throw new Exception("Failed to save Refresh Token");
+        }
 
-		Map<String, String> tokens = new HashMap<>();
-		tokens.put("accessToken", accessToken);
-		tokens.put("refreshToken", refreshToken);
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+        tokens.put("refreshToken", refreshToken);
 
-		return tokens;
-	}
+        return tokens;
+    }
 
-	public String logout(String refreshToken) {
-		Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
+    public String logout(String refreshToken) {
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
 
-		if (tokenOpt.isPresent())
-			refreshTokenService.deleteRefreshToken(tokenOpt.get());
+        if (tokenOpt.isPresent())
+            refreshTokenService.deleteRefreshToken(tokenOpt.get());
 
-		return "User logged out";
-	}
+        return "User logged out";
+    }
 
-	public static record TokenResponse(String accessToken, String refreshToken) {
-	}
+    public static record TokenResponse(String accessToken, String refreshToken) {
+    }
 
-	public TokenResponse refreshTokens(String refreshToken) throws Exception {
-		if (!jwtProvider.isValid(refreshToken)) {
-			throw new Exception("Invalid or expired refresh token");
-		}
+    public TokenResponse refreshTokens(String refreshToken) throws Exception {
+        if (!jwtProvider.isValid(refreshToken)) {
+            throw new Exception("Invalid or expired refresh token");
+        }
 
-		Integer personId = Integer.valueOf(jwtProvider.getPersonId(refreshToken));
+        Integer personId = Integer.valueOf(jwtProvider.getPersonId(refreshToken));
 
-		Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
-		if (tokenOpt.isEmpty()) {
-			throw new Exception("Refresh token not found in database");
-		}
+        Optional<RefreshToken> tokenOpt = refreshTokenService.getRefreshToken(refreshToken);
+        if (tokenOpt.isEmpty()) {
+            throw new Exception("Refresh token not found in database");
+        }
 
-		String newAccessToken = jwtProvider.generateAccessToken(personId);
-		String newRefreshToken = jwtProvider.generateRefreshToken(personId);
+        String newAccessToken = jwtProvider.generateAccessToken(personId);
+        String newRefreshToken = jwtProvider.generateRefreshToken(personId);
 
-		refreshTokenService.deleteRefreshToken(tokenOpt.get());
-		refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
+        refreshTokenService.deleteRefreshToken(tokenOpt.get());
+        refreshTokenService.saveRefreshTokenToDatabase(newRefreshToken, personId);
 
-		return new TokenResponse(newAccessToken, newRefreshToken);
-	}
+        return new TokenResponse(newAccessToken, newRefreshToken);
+    }
 }
