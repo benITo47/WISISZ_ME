@@ -9,5 +9,5 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export type { CustomAxiosRequestConfig }; // eksport opcjonalny
+export type { CustomAxiosRequestConfig };
 export default api;

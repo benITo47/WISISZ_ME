@@ -3,8 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PageLayout from "./components/PageLayout";
 import HomePage from "./pages/HomePage";
 import AuthProvider from "./context/AuthProvider";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/account/LoginPage";
+import RegisterPage from "./pages/account/RegisterPage";
 import AccountPage from "./pages/AccountPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 

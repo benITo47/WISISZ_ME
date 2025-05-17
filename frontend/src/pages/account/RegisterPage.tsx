@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Container from "../components/Container";
-import InputField from "../components/InputField";
-import Button from "../components/Button";
-import api from "../api/api";
+import InputField from "../../components/InputField";
+import Button from "../../components/Button";
+import api from "../../api/api";
 import axios from "axios";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../../context/AuthProvider";
+import styles from "./RegisterPage.module.css";
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,112 +16,152 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { setToken, setIsLoggedIn, setUser } = useAuth();
+  const { setToken, setIsLoggedIn } = useAuth();
+
+  const nameValidator = (input: string) => /^[a-zA-Z]{2,}$/.test(input);
+  const emailValidator = (input: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+  const passwordValidator = (input: string) =>
+    /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(input);
 
   const handleRegister = async () => {
+    if (!fname || !lname || !emailAddr || !password || !confirmPassword) {
+      setError("All fields are required.");
+      return;
+    }
+
+    if (!nameValidator(fname) || !nameValidator(lname)) {
+      setError("First and last name must be at least 2 letters.");
+      return;
+    }
+
+    if (!emailValidator(emailAddr)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!passwordValidator(password)) {
+      setError(
+        "Password must be at least 8 characters with one letter and one number.",
+      );
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError("Hasła nie są takie same.");
+      setError("Passwords do not match.");
       return;
     }
 
     try {
       const response = await api.post("/auth/register", {
-        fname: fname,
-        lname: lname,
-        emailAddr: emailAddr,
-        password: password,
+        fname,
+        lname,
+        emailAddr,
+        password,
       });
 
       const accessToken = response.headers["accesstoken"];
-      setToken(accessToken);
-      setIsLoggedIn(true);
 
+      if (response.status === 200 && accessToken) {
+        setToken(accessToken);
+        setIsLoggedIn(true);
+        navigate("/account");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     } catch (error: any) {
       if (axios.isAxiosError?.(error)) {
-        setError(error.response?.data?.message || "Błąd rejestracji.");
+        setError(error.response?.data?.message || "Registration error.");
       } else {
-        setError("Nieoczekiwany błąd.");
+        setError("Unexpected error occurred.");
       }
     }
-
-    console.log("Rejestracja użytkownika:", {
-      fname,
-      lname,
-      emailAddr,
-      password,
-    });
-
-    
-    navigate("/account");
   };
 
   return (
-    <Container
-      style={{ marginTop: "50px", padding: "2rem", maxWidth: "500px" }}
-    >
-      <h2
-        style={{ textAlign: "center", marginBottom: "2rem", color: "#e2f989" }}
-      >
-        Załóż konto
-      </h2>
+    <div className={styles.wrapper}>
+      <div className={styles.registerBox}>
+        <h2 className={styles.heading}>Create an Account</h2>
 
-      <InputField
-        value={fname}
-        onChange={setFname}
-        placeholder="Imię"
-        required
-      />
+        <div className={styles.formInputs}>
+          <div className={styles.input}>
+            <InputField
+              value={fname}
+              onChange={setFname}
+              placeholder="First Name"
+              validator={nameValidator}
+              errorMessage="First name must be at least 2 letters."
+              required
+            />
+          </div>
 
-      <InputField
-        value={lname}
-        onChange={setLname}
-        placeholder="Nazwisko"
-        required
-      />
+          <div className={styles.input}>
+            <InputField
+              value={lname}
+              onChange={setLname}
+              placeholder="Last Name"
+              validator={nameValidator}
+              errorMessage="Last name must be at least 2 letters."
+              required
+            />
+          </div>
 
-      <InputField
-        value={emailAddr}
-        onChange={setEmail}
-        placeholder="Adres e-mail"
-        type="email"
-        required
-      />
+          <div className={styles.input}>
+            <InputField
+              value={emailAddr}
+              onChange={setEmail}
+              placeholder="Email Address"
+              type="email"
+              validator={emailValidator}
+              errorMessage="Please enter a valid email address."
+              required
+            />
+          </div>
 
-      <InputField
-        value={password}
-        onChange={setPassword}
-        placeholder="Hasło"
-        type="password"
-        required
-      />
+          <div className={styles.input}>
+            <InputField
+              value={password}
+              onChange={setPassword}
+              placeholder="Password"
+              type="password"
+              validator={passwordValidator}
+              errorMessage="Password must be at least 8 characters, with one letter and one number."
+              required
+            />
+          </div>
 
-      <InputField
-        value={confirmPassword}
-        onChange={setConfirmPassword}
-        placeholder="Powtórz hasło"
-        type="password"
-        required
-      />
+          <div className={styles.input}>
+            <InputField
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="Confirm Password"
+              type="password"
+              required
+            />
+          </div>
+        </div>
 
-      {error && (
-        <p style={{ color: "red", textAlign: "center", margin: "1rem 0" }}>
-          {error}
-        </p>
-      )}
+        {error && <p className={styles.errorMessage}>{error}</p>}
 
-      <div
-        style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}
-      >
-        <Button onClick={handleRegister}>Zarejestruj się</Button>
+        <div className={styles.buttonWrapper}>
+          <Button onClick={handleRegister}>Sign Up</Button>
+        </div>
+
+        <div className={styles.footer}>
+          Already have an account?{" "}
+          <Button
+            to="/login"
+            style={{
+              padding: "5px",
+              borderRadius: "9px",
+              fontSize: "0.65rem",
+            }}
+          >
+            Log In
+          </Button>
+        </div>
       </div>
-
-      <p style={{ textAlign: "center", marginTop: "1rem" }}>
-        Masz już konto?{" "}
-        <Button to="/login" style={{ fontSize: "14px" }}>
-          Zaloguj się
-        </Button>
-      </p>
-    </Container>
+    </div>
   );
 };
 

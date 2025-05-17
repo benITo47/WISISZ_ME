@@ -1,11 +1,10 @@
-import React from 'react';
+import React from "react";
 
 type ContainerProps = {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 };
-
 
 const defaultContainerStyle: React.CSSProperties = {
   marginLeft: "auto",
@@ -20,20 +19,21 @@ const defaultContainerStyle: React.CSSProperties = {
   color: "#fff",
 };
 
-const Container: React.FC<ContainerProps> = ({ children, className, style }) => {
-
-
+const Container: React.FC<ContainerProps> = ({
+  children,
+  className,
+  style,
+}) => {
   const combinedStyle: React.CSSProperties = {
     ...defaultContainerStyle,
     ...style,
   };
 
   return (
-    <div className={` ${className || ''}`} style={combinedStyle}>
+    <div style={combinedStyle} className={` ${className || ""}`}>
       {children}
     </div>
   );
 };
 
 export default Container;
-
