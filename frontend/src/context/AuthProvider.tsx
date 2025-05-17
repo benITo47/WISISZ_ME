@@ -30,7 +30,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const authContext = useContext(AuthContext);
-
   if (!authContext) {
     throw new Error("useAuth must be used within a AuthProvider");
   }
@@ -56,24 +55,29 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    if (!token) return;
+
     const fetchMe = async () => {
-      console.log("[auth] 🔄 Fetching /me...");
+      console.log("[auth] 🔄 Fetching /me/profile...");
       try {
         const response = await api.get("/me/profile");
-        if ((response.status = 200)) {
-          console.log("[auth] ✅ /me success:", response.data);
-
-          setToken(response.data.token);
+        if (response.status === 200) {
+          console.log("[auth] ✅ /me/profile success:", response.data);
           setUser(response.data);
           setIsLoggedIn(true);
         }
-      } catch (err) {}
+      } catch (err) {
+        console.warn("[auth] ❌ /me/profile failed", err);
+        setUser(null);
+        setIsLoggedIn(false);
+      }
     };
+
     fetchMe();
-  }, []);
+  }, [token]);
 
   useLayoutEffect(() => {
-    const authInterceptor = api.interceptors.request.use((config) => {
+    const requestInterceptor = api.interceptors.request.use((config) => {
       const cfg = config as CustomAxiosRequestConfig;
 
       if (!cfg._retry && token) {
@@ -85,37 +89,38 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      api.interceptors.request.eject(authInterceptor);
+      api.interceptors.request.eject(requestInterceptor);
     };
   }, [token]);
 
   useLayoutEffect(() => {
-    const refreshInterceptor = api.interceptors.response.use(
+    const responseInterceptor = api.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config as CustomAxiosRequestConfig;
 
-        if (
-          error.response.status === 403 &&
-          error.response.data.message === "Unauthorized" &&
+        const shouldTryRefresh =
+          error.response &&
+          [401, 403].includes(error.response.status) &&
           !originalRequest._retry &&
-          originalRequest.url !== "/auth/refresh"
-        ) {
-          console.warn("[auth] 🔁 Got 403 – trying refresh...");
+          originalRequest.url !== "/auth/refresh";
+
+        if (shouldTryRefresh) {
+          console.warn("[auth] 🔁 Trying token refresh...");
 
           try {
             const response = await api.post("/auth/refresh");
-            console.log("[auth] ✅ /refreshToken success");
+            const newAccessToken = response.data.accessToken;
 
-            setToken(response.data.accessToken);
-            originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+            setToken(newAccessToken);
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             originalRequest._retry = true;
 
             return api(originalRequest);
-          } catch (err) {
-            console.warn("[auth] ❌ /auth/refresh failed – logging out");
-            logOut();
-            return Promise.reject(err);
+          } catch (refreshError) {
+            console.warn("[auth] ❌ Refresh failed – logging out");
+            await logOut();
+            return Promise.reject(refreshError);
           }
         }
 
@@ -124,9 +129,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return () => {
-      api.interceptors.response.eject(refreshInterceptor);
+      api.interceptors.response.eject(responseInterceptor);
     };
-  }, []);
+  }, [token]);
 
   return (
     <AuthContext.Provider

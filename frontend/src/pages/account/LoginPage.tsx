@@ -33,7 +33,7 @@ const LoginPage = () => {
         password: password,
       });
 
-      const accessToken = response.headers["accesstoken"];
+      const accessToken = response.data["accessToken"];
       if (!accessToken) throw new Error("Brak accessTokena w nagłówku");
 
       setToken(accessToken);

@@ -17,12 +17,12 @@ function App() {
         <Routes>
           <Route path="/" element={<PageLayout />}>
             <Route index element={<HomePage />} />
-            <Route path="wallet" element={<HomePage />} />
-            <Route path="groups" element={<GroupsPage />} />
+            <Route path="/wallet" element={<HomePage />} />
+            <Route path="/groups" element={<GroupsPage />} />
             <Route path="/group/:id" element={<GroupDetailsPage />} />
-            <Route path="about" element={<HomePage />} />
+            <Route path="/about" element={<HomePage />} />
             <Route
-              path="account"
+              path="/account"
               element={
                 <ProtectedRoute>
                   <AccountPage />
@@ -30,8 +30,8 @@ function App() {
               }
             />
 
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
