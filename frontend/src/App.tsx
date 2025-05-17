@@ -7,6 +7,8 @@ import LoginPage from "./pages/account/LoginPage";
 import RegisterPage from "./pages/account/RegisterPage";
 import AccountPage from "./pages/AccountPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GroupsPage from "./pages/groups/GroupsPage";
+import GroupDetailsPage from "./pages/groups/GroupDetailsPage";
 
 function App() {
   return (
@@ -16,9 +18,9 @@ function App() {
           <Route path="/" element={<PageLayout />}>
             <Route index element={<HomePage />} />
             <Route path="wallet" element={<HomePage />} />
-            <Route path="groups" element={<HomePage />} />
+            <Route path="groups" element={<GroupsPage />} />
+            <Route path="/group/:id" element={<GroupDetailsPage />} />
             <Route path="about" element={<HomePage />} />
-
             <Route
               path="account"
               element={
