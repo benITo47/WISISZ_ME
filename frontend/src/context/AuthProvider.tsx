@@ -6,7 +6,6 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
-
 import api, { CustomAxiosRequestConfig } from "../api/api";
 
 interface User {
@@ -29,24 +28,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
-  const authContext = useContext(AuthContext);
-  if (!authContext) {
-    throw new Error("useAuth must be used within a AuthProvider");
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return authContext;
+  return context;
 };
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const logOut = async () => {
     console.log("[auth] 🚪 Logging out...");
     try {
       await api.post("/auth/logout");
-    } catch {
-      console.warn("[auth] ⚠️ Logout request failed");
+    } catch (err) {
+      console.warn("[auth] ⚠️ Logout request failed", err);
     } finally {
       setUser(null);
       setToken(null);
@@ -54,6 +53,25 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // 🌅 Refresh access token on initial load
+  useEffect(() => {
+    const tryInitialRefresh = async () => {
+      console.log("[auth] 🌅 Trying initial refresh...");
+      try {
+        const response = await api.post("/auth/refresh");
+        const newAccessToken = response.data.accessToken;
+        setToken(newAccessToken);
+        console.log("[auth] ✅ Refresh success");
+      } catch (e) {
+        console.warn("[auth] 🚫 Initial refresh failed", e);
+        setToken(null);
+      }
+    };
+
+    tryInitialRefresh();
+  }, []);
+
+  // 👤 Fetch user profile after token is available
   useEffect(() => {
     if (!token) return;
 
@@ -62,12 +80,12 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const response = await api.get("/me/profile");
         if (response.status === 200) {
-          console.log("[auth] ✅ /me/profile success:", response.data);
           setUser(response.data);
           setIsLoggedIn(true);
+          console.log("[auth] ✅ Profile loaded:", response.data);
         }
       } catch (err) {
-        console.warn("[auth] ❌ /me/profile failed", err);
+        console.warn("[auth] ❌ Failed to fetch profile", err);
         setUser(null);
         setIsLoggedIn(false);
       }
@@ -76,15 +94,14 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchMe();
   }, [token]);
 
+  // 📤 Add Authorization header if token is present
   useLayoutEffect(() => {
     const requestInterceptor = api.interceptors.request.use((config) => {
       const cfg = config as CustomAxiosRequestConfig;
-
       if (!cfg._retry && token) {
         cfg.headers.Authorization = `Bearer ${token}`;
-        console.log(`[auth] 📨 Added Authorization header to ${cfg.url}`);
+        console.log(`[auth] 📨 Added Authorization to ${cfg.url}`);
       }
-
       return cfg;
     });
 
@@ -93,6 +110,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [token]);
 
+  // 🔁 Handle 401/403 errors → try refresh
   useLayoutEffect(() => {
     const responseInterceptor = api.interceptors.response.use(
       (response) => response,
@@ -106,16 +124,13 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
           originalRequest.url !== "/auth/refresh";
 
         if (shouldTryRefresh) {
-          console.warn("[auth] 🔁 Trying token refresh...");
-
+          console.warn("[auth] 🔁 Token expired – trying refresh...");
           try {
             const response = await api.post("/auth/refresh");
             const newAccessToken = response.data.accessToken;
-
             setToken(newAccessToken);
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             originalRequest._retry = true;
-
             return api(originalRequest);
           } catch (refreshError) {
             console.warn("[auth] ❌ Refresh failed – logging out");
@@ -136,9 +151,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider
       value={{
+        user,
         token,
         isLoggedIn,
-        user,
         logOut,
         setUser,
         setToken,
