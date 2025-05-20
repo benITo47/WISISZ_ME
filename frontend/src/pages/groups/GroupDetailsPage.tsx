@@ -52,17 +52,29 @@ const GroupDetailsPage: React.FC = () => {
         const groupRes = await api.get(`/me/teams/${id}`);
         setGroupName(groupRes.data.teamName);
         setMembers(groupRes.data.members);
+      } catch (err: any) {
+        console.error("[group] ❌ Failed to fetch group details", err);
+        setError("Failed to load group info.");
+        return;
+      }
 
-        const [balanceRes, opsRes] = await Promise.all([
-          api.get<Balance[]>(`/me/teams/${id}/operations/balance`),
-          api.get<Operation[]>(`/me/teams/${id}/operations`),
-        ]);
-
-        setBalances(balanceRes.data);
+      try {
+        const opsRes = await api.get<Operation[]>(`/me/teams/${id}/operations`);
         setOperations(opsRes.data);
       } catch (err: any) {
-        console.error(err);
-        setError("Failed to load group data.");
+        console.error("[group] ❌ Failed to fetch operations", err);
+        setError("Failed to load operations.");
+        return;
+      }
+
+      try {
+        const balanceRes = await api.get<Balance[]>(
+          `/me/teams/${id}/operations/balance`,
+        );
+        setBalances(balanceRes.data);
+      } catch (err: any) {
+        console.warn("[group] ⚠️ No balances found (likely empty group)");
+        setBalances([]); // 👈 fallback – brak danych to nie błąd
       }
     };
 
