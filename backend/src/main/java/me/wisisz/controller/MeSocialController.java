@@ -8,6 +8,10 @@ import me.wisisz.model.Person;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
+import me.wisisz.exception.AppException.UserNotInTeamException;
+import me.wisisz.exception.AppException.BadRequestException;
+import me.wisisz.exception.AppException.NotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -259,18 +263,11 @@ public class MeSocialController {
     @PostMapping("/join/{inviteCode}")
     public ResponseEntity<Map<String, String>> addTeamMemberInviteCode(
             HttpServletRequest request,
-            @PathVariable String inviteCode) throws Exception {
+            @PathVariable String inviteCode) throws BadRequestException, NotFoundException {
         
         Integer meId = (Integer) request.getAttribute("personId");
-        try {
-            
-            String message = teamService.saveTeamMemberInviteCode(inviteCode, meId);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+        String message = teamService.saveTeamMemberInviteCode(inviteCode, meId);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 
     /**

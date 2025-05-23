@@ -25,6 +25,20 @@ public class AppException {
         }
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public static class BadRequestException extends Exception {
+        public BadRequestException(String message) {
+            super(message);
+        }
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public static class UserNotInTeamException extends Exception {
+        public UserNotInTeamException(String message) {
+            super(message);
+        }
+    }
+
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public static class NotFoundException extends Exception {
         public NotFoundException(String message) {

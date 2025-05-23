@@ -9,6 +9,11 @@ import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.TeamMemberBalancesService;
 import me.wisisz.service.TeamService;
 
+import me.wisisz.exception.AppException.UserNotInTeamException;
+import me.wisisz.exception.AppException.BadRequestException;
+import me.wisisz.exception.AppException.NotFoundException;
+import me.wisisz.exception.AppException.UnexpectedException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,13 +108,14 @@ public class MeOperationsController {
     @GetMapping("/summary")
     public ResponseEntity<List<OperationSummaryDTO>> getTeamOperationsSummary(
             HttpServletRequest request,
-            @PathVariable Integer teamId) throws Exception {
+            @PathVariable Integer teamId) throws UserNotInTeamException, NotFoundException {
 
         Optional<List<OperationSummaryDTO>> operations = teamService.getTeamOperationsSummaryView(teamId);
-        if (operations.isPresent()) {
-            return new ResponseEntity<>(operations.get(), HttpStatus.OK);
+        if (operations.isEmpty()) {
+            throw new NotFoundException("Operation not found in database");
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(operations.get(), HttpStatus.OK);
     }
 
     /**
@@ -151,19 +157,12 @@ public class MeOperationsController {
     public ResponseEntity<Map<String, String>> addOperation(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @RequestBody TeamOperationRequestDTO operationData) throws Exception {
+            @RequestBody TeamOperationRequestDTO operationData) throws UserNotInTeamException, BadRequestException, UnexpectedException {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        try {
-            String message = teamService.saveTeamOperation(meId, teamId, operationData);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            String msg = e.getMessage();
-            HttpStatus status = msg != null && msg.contains("not in the team") ? HttpStatus.FORBIDDEN : HttpStatus.BAD_REQUEST;
-            return ResponseEntity.status(status).body(Map.of("error", msg));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        String message = teamService.saveTeamOperation(meId, teamId, operationData);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+
     }
 
     /**
@@ -222,13 +221,13 @@ public class MeOperationsController {
     public ResponseEntity<OperationDetailDTO> getOperation(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @PathVariable Integer operationId) throws Exception {
+            @PathVariable Integer operationId) throws NotFoundException, UserNotInTeamException {
 
         Optional<OperationDetailDTO> operation = teamService.getSingleTeamOperationView(teamId, operationId);
-        if (operation.isPresent()) {
-            return new ResponseEntity<>(operation.get(), HttpStatus.OK);
+        if (operation.isEmpty()) {
+            throw new NotFoundException("Operation not found in database");
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(operation.get(), HttpStatus.OK);
     }
 
     /**

@@ -21,10 +21,12 @@ import me.wisisz.repository.OperationRepository;
 import me.wisisz.repository.OperationEntryRepository;
 import me.wisisz.repository.CategoryRepository;
 
+import me.wisisz.exception.AppException.UserNotInTeamException;
+import me.wisisz.exception.AppException.BadRequestException;
+import me.wisisz.exception.AppException.NotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
 
@@ -113,9 +115,12 @@ public class TeamService {
         return "Team member added";
     }
 
-    public String saveTeamMemberInviteCode(String inviteCode, Integer personId) {
+    public String saveTeamMemberInviteCode(String inviteCode, Integer personId) throws BadRequestException, NotFoundException {
         TeamMember newTeamMember = new TeamMember();
         Optional<Team> team = teamRepository.findByInviteCode(inviteCode);
+        if (team.isEmpty()){
+            throw new NotFoundException("Team not found for invite code " + inviteCode);
+        }
         newTeamMember.setTeam(team.get());
         Optional<Person> person = personRepository.findById(personId);
         newTeamMember.setPerson(person.get());
@@ -125,7 +130,7 @@ public class TeamService {
                 .findByPerson_IdAndTeam_Id(personId, team.get().getId())
                 .isPresent();
         if (alreadyMember) {
-            throw new IllegalStateException("Person is already a member of the team");
+            throw new BadRequestException("Person is already a member of the team");
         }
 
         teamMemberRepository.save(newTeamMember);
@@ -140,7 +145,7 @@ public class TeamService {
         return "Team member removed";
     }
 
-    public String saveTeamOperation(Integer meId, Integer teamId, TeamOperationRequestDTO data) {
+    public String saveTeamOperation(Integer meId, Integer teamId, TeamOperationRequestDTO data) throws BadRequestException, UserNotInTeamException {
 
         BigDecimal totalAmount = new BigDecimal(data.getTotalAmount());
 
@@ -164,7 +169,7 @@ public class TeamService {
         boolean senderIncluded = participants.stream()
             .anyMatch(p -> Integer.valueOf(p.getPersonId()).equals(meId));
         if (!senderIncluded) {
-            throw new IllegalArgumentException("Current user (sender) is not listed among participants");
+            throw new BadRequestException("Current user (sender) is not listed among participants");
         }
 
         List<OperationEntry> allOperationEntries = new ArrayList<>();
@@ -184,7 +189,7 @@ public class TeamService {
                     Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
 
                     if (teamMember.isEmpty()) {
-                        throw new IllegalArgumentException("Person with ID " + personId + " is not in the team");
+                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
                     }
 
                     BigDecimal memberShare = oneShare.multiply(share).negate();
@@ -215,7 +220,7 @@ public class TeamService {
 
                     Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
                     if (teamMember.isEmpty()) {
-                        throw new IllegalArgumentException("Person with ID " + personId + " is not in the team");
+                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
                     }
 
                     BigDecimal memberShare = oneShare.multiply(share);
@@ -235,7 +240,7 @@ public class TeamService {
 
             case "transfer": { 
                 if (participants.size() != 2) {
-                    throw new IllegalArgumentException("Transfer operation must involve exactly 2 participants");
+                    throw new BadRequestException("Transfer operation must involve exactly 2 participants");
                 }
 
                 for (OperationParticipantDTO participant : participants) {
@@ -243,7 +248,7 @@ public class TeamService {
 
                     Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
                     if (teamMember.isEmpty()) {
-                        throw new IllegalArgumentException("Person with ID " + personId + " is not in the team");
+                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
                     }
                     
                     OperationEntry entry = new OperationEntry();
@@ -263,7 +268,7 @@ public class TeamService {
             }
 
             default: {
-                throw new IllegalArgumentException("Invalid operation type.");
+                throw new BadRequestException("Invalid operation type.");
             }
 
         }
