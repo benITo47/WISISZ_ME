@@ -44,6 +44,9 @@ public class Operation {
     @OneToMany(mappedBy = "operation", fetch = FetchType.LAZY)
     private List<OperationEntry> entries;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
     public Integer getId() {
         return id;
     }
@@ -122,5 +125,13 @@ public class Operation {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

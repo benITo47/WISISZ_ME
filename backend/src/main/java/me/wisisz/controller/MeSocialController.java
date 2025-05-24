@@ -1,10 +1,16 @@
 package me.wisisz.controller;
 
+import me.wisisz.dto.TeamDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
+
 import me.wisisz.model.Person;
-import me.wisisz.model.Team;
+
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
+
+import me.wisisz.exception.AppException.UserNotInTeamException;
+import me.wisisz.exception.AppException.BadRequestException;
+import me.wisisz.exception.AppException.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -75,22 +81,33 @@ public class MeSocialController {
      *         [
      *         {
      *         "id": 1,
-     *         "teamName": "Flatmates"
+     *         "teamName": "Flatmates",
+     *         "inviteCode": "4B227777",
+     *         "newestOperationDate": "2025-04-08T10:53:17.578441Z", // contains null if team has no operations
+     *         "newestOperation": { // contains null if team has no operations
+     *         "operationId": 4,
+     *         "title": "Refund",
+     *         "categoryName": "Entertainment",
+     *         "totalAmount": 10.00
+     *         }
      *         },
      *         {
      *         "id": 2,
-     *         "teamName": "Work Project"
-     *         }
-     *         ]
+     *         "teamName": "Work Project",
+     *         "inviteCode": "47777777",
+     *         "newestOperationDate": null, 
+     *         "newestOperation": null
+     *         },
+     *         ...]
      *         Response (404 NOT FOUND): If person not found.
      */
 
     @GetMapping("/teams")
-    public ResponseEntity<List<Team>> getTeams(HttpServletRequest request)
+    public ResponseEntity<List<TeamDTO>> getTeams(HttpServletRequest request)
             throws Exception {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        Optional<List<Team>> teams = personService.getPersonTeams(meId);
+        Optional<List<TeamDTO>> teams = personService.getPersonTeams(meId);
         if (teams.isPresent()) {
             return new ResponseEntity<>(teams.get(), HttpStatus.OK);
         }
@@ -145,6 +162,14 @@ public class MeSocialController {
      *         {
      *         "teamId": 5,
      *         "teamName": "Road Trip",
+     *         "newestOperationDate": "2025-04-08T10:53:17.578441Z", // contains null if team has no operations
+     *         "newestOperation": { // contains null if team has no operations
+     *         "operationId": 4,
+     *         "title": "Refund",
+     *         "categoryName": "Entertainment",
+     *         "totalAmount": 10.00
+     *         }
+     *         },
      *         "members": [
      *         {
      *         "personId": 101,
@@ -170,8 +195,8 @@ public class MeSocialController {
     public ResponseEntity<TeamWithMembersDTO> getTeamById(
             HttpServletRequest request,
             @PathVariable Integer teamId) throws Exception {
-
-        Optional<TeamWithMembersDTO> team = teamService.getTeamWithMembersById(teamId);
+        Integer meId = (Integer) request.getAttribute("personId");
+        Optional<TeamWithMembersDTO> team = teamService.getTeamWithMembersById(teamId, meId);
         if (team.isPresent()) {
             return new ResponseEntity<>(team.get(), HttpStatus.OK);
         }
@@ -212,6 +237,37 @@ public class MeSocialController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * POST /api/me/join/{inviteCode}
+     *
+     * Adds a new person to the team by invite code.
+     *
+     * @param authorizationHeader Bearer token
+     * @param teamId              Team ID
+     * @param memberData          JSON with:
+     *                            {
+     *                            "inviteCode": "6B86B273"
+     *                            }
+     * @return JSON with success message or error.
+     *
+     *         Example response:
+     *         {
+     *         "message": "Team member added"
+     *         }
+     *         Response (403 FORBIDDEN): If user is already a member of that team
+     *         Response (404 NOT FOUND): If no team with said invite code found.
+     *
+     */
+    @PostMapping("/join/{inviteCode}")
+    public ResponseEntity<Map<String, String>> addTeamMemberInviteCode(
+            HttpServletRequest request,
+            @PathVariable String inviteCode) throws BadRequestException, NotFoundException {
+        
+        Integer meId = (Integer) request.getAttribute("personId");
+        String message = teamService.saveTeamMemberInviteCode(inviteCode, meId);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 
     /**

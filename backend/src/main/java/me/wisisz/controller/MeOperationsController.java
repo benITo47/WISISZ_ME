@@ -1,10 +1,18 @@
 package me.wisisz.controller;
 
 import me.wisisz.dto.OperationDTO;
+import me.wisisz.dto.OperationSummaryDTO;
+import me.wisisz.dto.OperationDetailDTO;
 import me.wisisz.dto.TransactionDTO;
+import me.wisisz.dto.TeamOperationRequestDTO;
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.TeamMemberBalancesService;
 import me.wisisz.service.TeamService;
+
+import me.wisisz.exception.AppException.UserNotInTeamException;
+import me.wisisz.exception.AppException.BadRequestException;
+import me.wisisz.exception.AppException.NotFoundException;
+import me.wisisz.exception.AppException.UnexpectedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -73,6 +81,44 @@ public class MeOperationsController {
     }
 
     /**
+     * GET /api/me/teams/{teamId}/operations/summary
+     *
+     * Retrieves basic summary for all operations for a given team where the authenticated user is a
+     * member.
+     *
+     * Headers:
+     * - Authorization: Bearer <JWT>
+     *
+     * Path Variables:
+     * - teamId (Integer): ID of the team
+     *
+     * Response (200 OK):
+     * [
+     * {
+     * "operationId": 101,
+     * "title": "Lunch",
+     * "totalAmount": "250.0",
+     * "categoryName": "Restaurant",
+     * },
+     * ...]
+     *
+     * Response (403 FORBIDDEN): If user is not a member of the team.
+     * Response (404 NOT FOUND): If team or operations not found.
+     */
+    @GetMapping("/summary")
+    public ResponseEntity<List<OperationSummaryDTO>> getTeamOperationsSummary(
+            HttpServletRequest request,
+            @PathVariable Integer teamId) throws UserNotInTeamException, NotFoundException {
+
+        Optional<List<OperationSummaryDTO>> operations = teamService.getTeamOperationsSummaryView(teamId);
+        if (operations.isEmpty()) {
+            throw new NotFoundException("Operation not found in database");
+        }
+
+        return new ResponseEntity<>(operations.get(), HttpStatus.OK);
+    }
+
+    /**
      * POST /api/me/teams/{teamId}/operations
      *
      * Adds a new operation to the team.
@@ -86,17 +132,24 @@ public class MeOperationsController {
      *
      * Request Body (JSON):
      * {
+     * "title": "Lunch",
      * "totalAmount": "250.00",
      * "categoryId": "3",
      * "currencyCode": "USD",
-     * "description": "Lunch",
+     * "description": "Post-project lunch gathering",
      * "operationType": "expense", // or "income", "transfer"
-     * "recipientID": "42" // only for type "transfer"
+     * "participants": [
+     * {
+     *  "personId": "1",
+     *  "share": "2",
+     * },
+     * ...]
      * }
      *
      * Response (200 OK):
      * { "message": "Operation successfully saved" }
      *
+     * Response (400 BAD REQUEST): If incorrect data passed
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (500 INTERNAL SERVER ERROR): On unexpected server error.
      */
@@ -104,15 +157,12 @@ public class MeOperationsController {
     public ResponseEntity<Map<String, String>> addOperation(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @RequestBody Map<String, String> operationData) throws Exception {
+            @RequestBody TeamOperationRequestDTO operationData) throws UserNotInTeamException, BadRequestException, UnexpectedException {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        try {
-            String message = teamService.saveTeamOperation(meId, teamId, operationData);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        String message = teamService.saveTeamOperation(meId, teamId, operationData);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
+
     }
 
     /**
@@ -130,6 +180,54 @@ public class MeOperationsController {
             @RequestBody Map<String, String> operationData) throws Exception {
 
         throw new UnsupportedOperationException("TODO");
+    }
+
+    /**
+     * GET /api/me/teams/{teamId}/operations/{operationId}
+     *
+     * Retrieves specific operation for a given team where the authenticated user is a
+     * member.
+     *
+     * Headers:
+     * - Authorization: Bearer <JWT>
+     *
+     * Path Variables:
+     * - teamId (Integer): ID of the team
+     * - operationId (Integer): ID of the operation
+     *
+     * Response (200 OK):
+     * {
+     * "title": "Lunch",
+     * "description": "Post-project lunch gathering",
+     * "totalAmount": "250.00",
+     * "operationDate": "2025-04-08T10:53:17.578441Z"
+     * "participants": [
+     * {
+     * "personId": ...,
+     * "fname": ...,
+     * "lname": ...,
+     * "emailAddr": ...,
+     * "share": ...,
+     * "paidAmount": ...,
+     * "currencyCode": ...,
+     * },
+     * ...]
+     * }
+     *
+     * Response (403 FORBIDDEN): If user is not a member of the team.
+     * Response (404 NOT FOUND): If team or operation not found.
+     */
+    @GetMapping("/{operationId}")
+    public ResponseEntity<OperationDetailDTO> getOperation(
+            HttpServletRequest request,
+            @PathVariable Integer teamId,
+            @PathVariable Integer operationId) throws NotFoundException, UserNotInTeamException {
+
+        Optional<OperationDetailDTO> operation = teamService.getSingleTeamOperationView(teamId, operationId);
+        if (operation.isEmpty()) {
+            throw new NotFoundException("Operation not found in database");
+        }
+        return new ResponseEntity<>(operation.get(), HttpStatus.OK);
     }
 
     /**
