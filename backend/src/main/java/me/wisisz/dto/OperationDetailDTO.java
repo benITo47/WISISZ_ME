@@ -11,6 +11,7 @@ public record OperationDetailDTO(
         String description,
         BigDecimal totalAmount,
         OffsetDateTime operationDate,
+        String categoryName,
         List<OperationMemberDTO> participants) {
 
     public OperationDetailDTO(Operation o) {
@@ -19,6 +20,7 @@ public record OperationDetailDTO(
                 o.getDescription(),
                 o.getTotalAmount(),
                 o.getOperationDate(),
+                o.getCategory().getCategoryName(),
                 o.getEntries().stream().map(e -> new OperationMemberDTO(e.getTeamMember(), e.getAmount(), o.getCurrencyCode())).distinct().toList());
     }
 }
