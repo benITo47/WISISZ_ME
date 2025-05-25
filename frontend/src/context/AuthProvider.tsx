@@ -38,14 +38,12 @@ export const useAuth = () => {
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
 
   const logOut = async () => {
-    console.log("[auth] 🚪 Logging out...");
     try {
       await api.post("/auth/logout");
     } catch (err) {
-      console.warn("[auth] ⚠️ Logout request failed", err);
     } finally {
       setUser(null);
       setToken(null);
@@ -53,7 +51,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 🌅 Refresh access token on initial load
   useEffect(() => {
     const tryInitialRefresh = async () => {
       console.log("[auth] 🌅 Trying initial refresh...");
@@ -61,10 +58,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const response = await api.post("/auth/refresh");
         const newAccessToken = response.data.accessToken;
         setToken(newAccessToken);
-        console.log("[auth] ✅ Refresh success");
+        setIsLoggedIn(true);
       } catch (e) {
-        console.warn("[auth] 🚫 Initial refresh failed", e);
         setToken(null);
+        setIsLoggedIn(false);
       }
     };
 
@@ -76,16 +73,14 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
 
     const fetchMe = async () => {
-      console.log("[auth] 🔄 Fetching /me/profile...");
       try {
         const response = await api.get("/me/profile");
         if (response.status === 200) {
           setUser(response.data);
           setIsLoggedIn(true);
-          console.log("[auth] ✅ Profile loaded:", response.data);
         }
       } catch (err) {
-        console.warn("[auth] ❌ Failed to fetch profile", err);
+        // console.warn("[auth] ❌ Failed to fetch profile", err);
         setUser(null);
         setIsLoggedIn(false);
       }
@@ -94,13 +89,12 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchMe();
   }, [token]);
 
-  // 📤 Add Authorization header if token is present
   useLayoutEffect(() => {
     const requestInterceptor = api.interceptors.request.use((config) => {
       const cfg = config as CustomAxiosRequestConfig;
       if (!cfg._retry && token) {
         cfg.headers.Authorization = `Bearer ${token}`;
-        console.log(`[auth] 📨 Added Authorization to ${cfg.url}`);
+        // console.log(`[auth] 📨 Added Authorization to ${cfg.url}`);
       }
       return cfg;
     });
@@ -110,7 +104,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [token]);
 
-  // 🔁 Handle 401/403 errors → try refresh
   useLayoutEffect(() => {
     const responseInterceptor = api.interceptors.response.use(
       (response) => response,

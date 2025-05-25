@@ -4,6 +4,10 @@ import api from "../../api/api";
 import styles from "./GroupDetailsPage.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { CategoryMap, CategoryKey } from "../../utils/categories";
+
+// Import Twojego overlaya (dostosuj ścieżkę jeśli trzeba)
+import OverlayOperation from "../../components/OverlayOperation";
 
 interface Member {
   personId: number;
@@ -13,25 +17,21 @@ interface Member {
   defaultShare: number;
 }
 
-interface Balance {
-  firstName: string;
-  lastName: string;
-  balance: number;
-}
-
-interface OperationItem {
-  fname: string;
-  lname: string;
-  emailAddr: string;
+interface SummaryTransaction {
+  fromFirstName: string;
+  fromLastName: string;
+  fromEmailAddr: string;
+  toFirstName: string;
+  toLastName: string;
+  toEmailAddr: string;
   amount: number;
-  currencyCode: string;
 }
 
-interface Operation {
+interface OperationSummary {
   operationId: number;
-  teamName: string;
+  title: string;
+  totalAmount: string;
   categoryName: string;
-  operations: OperationItem[];
 }
 
 const GroupDetailsPage: React.FC = () => {
@@ -40,9 +40,16 @@ const GroupDetailsPage: React.FC = () => {
 
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
-  const [balances, setBalances] = useState<Balance[]>([]);
-  const [operations, setOperations] = useState<Operation[]>([]);
+  const [summary, setSummary] = useState<SummaryTransaction[]>([]);
+  const [operations, setOperations] = useState<OperationSummary[]>([]);
+  const [selectedOperationId, setSelectedOperationId] = useState<number | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
+
+  const handleTransactionClick = (operationId: number) => {
+    setSelectedOperationId(operationId);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -59,33 +66,31 @@ const GroupDetailsPage: React.FC = () => {
       }
 
       try {
-        const opsRes = await api.get<Operation[]>(`/me/teams/${id}/operations`);
+        const opsRes = await api.get<OperationSummary[]>(
+          `/me/teams/${id}/operations/summary`,
+        );
         setOperations(opsRes.data);
       } catch (err: any) {
-        console.error("[group] ❌ Failed to fetch operations", err);
+        console.error("[group] ❌ Failed to fetch operations summary", err);
         setError("Failed to load operations.");
         return;
       }
 
       try {
-        const balanceRes = await api.get<Balance[]>(
-          `/me/teams/${id}/operations/balance`,
+        const summaryRes = await api.get<SummaryTransaction[]>(
+          `/me/teams/${id}/operations/transactions`,
         );
-        setBalances(balanceRes.data);
+        setSummary(summaryRes.data);
       } catch (err: any) {
-        console.warn("[group] ⚠️ No balances found (likely empty group)");
-        setBalances([]); // 👈 fallback – brak danych to nie błąd
+        console.warn("[group] ⚠️ No summary found (likely empty group)");
+        setSummary([]);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, navigate]);
 
   if (error) return <div className={styles.error}>{error}</div>;
-
-  const handleTransactionClick = (id: number) => {
-    console.log("Clicked transaction ID:", id);
-  };
 
   return (
     <div className={styles.wrapper}>
@@ -95,8 +100,15 @@ const GroupDetailsPage: React.FC = () => {
           className={styles["addButton"]}
           role="button"
           tabIndex={0}
-          onClick={() => setShowCreateOverlay(true)}
-          onKeyDown={(e) => e.key === "Enter" && setShowCreateOverlay(true)}
+          onClick={() => {
+            /* jakiś handler np. do tworzenia nowej operacji */
+          }}
+          onKeyDown={(e) =>
+            e.key === "Enter" &&
+            {
+              /* ten sam handler */
+            }
+          }
         >
           <FontAwesomeIcon icon={faPlus} className={styles.icon} />
         </div>
@@ -118,42 +130,50 @@ const GroupDetailsPage: React.FC = () => {
         <p>
           <strong>Rozliczenia:</strong>
         </p>
-        {balances.map((b, i) => (
-          <p key={i}>
-            {b.firstName} {b.lastName}:{" "}
-            <span style={{ color: b.balance < 0 ? "red" : "lime" }}>
-              {b.balance.toFixed(2)} zł
-            </span>
+        {summary.map((tx, index) => (
+          <p key={index}>
+            {tx.fromFirstName} {tx.fromLastName} ➜ {tx.toFirstName}{" "}
+            {tx.toLastName}:{" "}
+            <span style={{ color: "orange" }}>{tx.amount.toFixed(2)} zł</span>
           </p>
         ))}
       </div>
 
       <div className={styles.transactionList}>
-        {operations.map((op) => (
-          <div
-            key={op.operationId}
-            className={styles.transactionItem}
-            onClick={() => handleTransactionClick(op.operationId)}
-          >
-            <div>
-              <strong>{op.categoryName}</strong>
-              <span
-                style={{
-                  marginLeft: "0.5rem",
-                  fontSize: "0.85rem",
-                  color: "#bbb",
-                }}
-              >
-                ({op.operations[0]?.fname})
-              </span>
+        {operations.map((op) => {
+          const normalizedKey = op.categoryName.trim().toUpperCase();
+          const category =
+            CategoryMap[normalizedKey as CategoryKey] ?? CategoryMap.MISC;
+
+          return (
+            <div
+              key={op.operationId}
+              className={styles.transactionItem}
+              onClick={() => handleTransactionClick(op.operationId)}
+            >
+              <div>
+                <FontAwesomeIcon
+                  icon={category.icon}
+                  className={styles.categoryIcon}
+                />
+                <strong style={{ marginLeft: "0.5rem" }}>
+                  {category.label}
+                </strong>
+              </div>
+              <span>{parseFloat(op.totalAmount).toFixed(2)} zł</span>
             </div>
-            <span>
-              {op.operations.reduce((sum, o) => sum + o.amount, 0).toFixed(2)}{" "}
-              {op.operations[0]?.currencyCode}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {selectedOperationId && id && (
+        <OverlayOperation
+          teamId={id}
+          operationId={selectedOperationId}
+          visible={selectedOperationId !== null}
+          onClose={() => setSelectedOperationId(null)}
+        />
+      )}
     </div>
   );
 };

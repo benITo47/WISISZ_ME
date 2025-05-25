@@ -43,7 +43,11 @@ const Overlay: React.FC<OverlayProps> = ({
           required
         />
         <div className={styles["modal-buttons"]}>
-          <Button className={styles.cancel} onClick={onClose}>
+          <Button
+            className={styles.cancel}
+            style={{ backgroundColor: "rgba(220,11,11,0.5)" }}
+            onClick={onClose}
+          >
             Cancel
           </Button>
           <Button className={styles.create} onClick={handleSubmit}>

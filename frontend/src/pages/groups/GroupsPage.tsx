@@ -15,10 +15,19 @@ interface Member {
   defaultShare: number;
 }
 
+interface Operation {
+  operationId: number;
+  title: string;
+  categoryName: string;
+  totalAmount: number;
+}
+
 interface Group {
-  id: number;
+  teamId: number;
   teamName: string;
   inviteCode: string;
+  newestOperationDate: Date;
+  newestOperation: Operation;
 }
 
 interface GroupDetails {
@@ -28,7 +37,6 @@ interface GroupDetails {
 }
 
 const GroupsPage: React.FC = () => {
-  const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
   const [groups, setGroups] = useState<Group[]>([]);
@@ -41,13 +49,8 @@ const GroupsPage: React.FC = () => {
   const [showJoinOverlay, setShowJoinOverlay] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/login");
-      return;
-    }
-
     fetchGroups();
-  }, [isLoggedIn, navigate]);
+  }, [navigate]);
 
   const fetchGroups = async () => {
     try {
@@ -57,7 +60,7 @@ const GroupsPage: React.FC = () => {
 
       const detailsMap: Record<number, GroupDetails> = {};
       const detailsPromises = response.data.map((group) =>
-        api.get<GroupDetails>(`/me/teams/${group.id}`).then((res) => {
+        api.get<GroupDetails>(`/me/teams/${group.teamId}`).then((res) => {
           detailsMap[group.id] = res.data;
         }),
       );
@@ -87,7 +90,7 @@ const GroupsPage: React.FC = () => {
 
   const handleJoinGroup = async (inviteCode: string) => {
     try {
-      await api.post("/me/teams/join", { inviteCode });
+      await api.post(`/me/join/${inviteCode}`);
       fetchGroups();
     } catch (err) {
       console.error("Failed to join group", err);
@@ -137,9 +140,9 @@ const GroupsPage: React.FC = () => {
                 className={styles["groups-square"]}
                 role="button"
                 tabIndex={0}
-                onClick={() => handleGroupClick(group.id)}
+                onClick={() => handleGroupClick(group.teamId)}
                 onKeyDown={(e) =>
-                  e.key === "Enter" && handleGroupClick(group.id)
+                  e.key === "Enter" && handleGroupClick(group.teamId)
                 }
               >
                 <p className={styles["groups-simple-text"]}>{group.teamName}</p>
