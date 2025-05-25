@@ -200,7 +200,8 @@ public class MeOperationsController {
      * "title": "Lunch",
      * "description": "Post-project lunch gathering",
      * "totalAmount": "250.00",
-     * "operationDate": "2025-04-08T10:53:17.578441Z"
+     * "operationDate": "2025-04-08T10:53:17.578441Z",
+     * "categoryName": "Restaurant",
      * "participants": [
      * {
      * "personId": ...,
