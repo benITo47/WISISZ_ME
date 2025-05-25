@@ -16,11 +16,11 @@ public record OperationDetailDTO(
 
     public OperationDetailDTO(Operation o) {
         this(
-                o.getTitle(),
-                o.getDescription(),
-                o.getTotalAmount(),
-                o.getOperationDate(),
-                o.getCategory().getCategoryName(),
-                o.getEntries().stream().map(e -> new OperationMemberDTO(e.getTeamMember(), e.getAmount(), o.getCurrencyCode())).distinct().toList());
+            o.getTitle(),
+            o.getDescription(),
+            o.getTotalAmount(),
+            o.getOperationDate(),
+            o.getCategory().getCategoryName(),
+            o.getEntries().stream().map(e -> new OperationMemberDTO(e.getTeamMember(), e.getAmount(), o.getCurrencyCode())).distinct().toList());
     }
 }

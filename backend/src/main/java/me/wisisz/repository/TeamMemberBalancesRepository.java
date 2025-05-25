@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for the `TeamMemberBalances` entity.
@@ -25,4 +26,5 @@ import java.util.List;
 @Repository
 public interface TeamMemberBalancesRepository extends JpaRepository<TeamMemberBalances, TeamMemberBalancesId> {
     List<TeamMemberBalances> findByTeamId(Long teamId);
+    Optional<TeamMemberBalances> findByTeam_IdAndPerson_Id(Integer teamId, Integer personId);
 }

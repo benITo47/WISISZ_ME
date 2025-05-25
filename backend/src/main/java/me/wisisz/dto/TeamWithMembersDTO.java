@@ -10,11 +10,12 @@ import me.wisisz.model.Operation;
 public record TeamWithMembersDTO(
         Integer teamId,
         String teamName,
+        String inviteCode,
         List<TeamMemberDTO> members,
         Optional<OffsetDateTime> newestOperationDate,
         Optional<OperationSummaryDTO> newestOperation) {
 
     public TeamWithMembersDTO(Team t, Optional<Operation> o) {
-        this(t.getId(), t.getTeamName(), t.getMemberships().stream().map(m -> new TeamMemberDTO(m)).toList(), o.map(Operation::getOperationDate), o.map(OperationSummaryDTO::new));
+        this(t.getId(), t.getTeamName(), t.getInviteCode(), t.getMemberships().stream().map(m -> new TeamMemberDTO(m)).toList(), o.map(Operation::getOperationDate), o.map(OperationSummaryDTO::new));
     }
 }

@@ -98,6 +98,7 @@ public class MeOperationsController {
      * "operationId": 101,
      * "title": "Lunch",
      * "totalAmount": "250.0",
+     * "currencyCode": "USD",
      * "categoryName": "Restaurant",
      * },
      * ...]
@@ -141,7 +142,7 @@ public class MeOperationsController {
      * "participants": [
      * {
      *  "personId": "1",
-     *  "share": "2",
+     *  "paidAmount": "2",
      * },
      * ...]
      * }
@@ -166,20 +167,50 @@ public class MeOperationsController {
     }
 
     /**
-     * PUT /api/me/teams/{teamId}/operations
+     * PUT /api/me/teams/{teamId}/operations/{operationId}
      *
-     * TODO: Updates an existing operation.
-     * Not yet implemented.
+     * Updates an existing operation.
      *
-     * Response (403 FORBIDDEN): If user is not a team member.
+     * Headers:
+     * - Authorization: Bearer <JWT>
+     *
+     * Path Variables:
+     * - teamId (Integer): ID of the team
+     * - operationId (Integer): ID of the operation
+     *
+     * Request Body (JSON):
+     * {
+     * "title": "Lunch",
+     * "totalAmount": "250.00",
+     * "categoryId": "3",
+     * "currencyCode": "USD",
+     * "description": "Post-project lunch gathering",
+     * "operationType": "expense", // or "income", "transfer"
+     * "participants": [
+     * {
+     *  "personId": "1",
+     *  "paidAmount": "2",
+     * },
+     * ...]
+     * }
+     *
+     * Response (200 OK):
+     * { "message": "Operation successfully updated" }
+     *
+     * Response (400 BAD REQUEST): If incorrect data passed
+     * Response (403 FORBIDDEN): If user is not a member of the team.
+     * Response (500 INTERNAL SERVER ERROR): On unexpected server error.
      */
-    @PutMapping("")
+    @PutMapping("/{operationId}")
     public ResponseEntity<Map<String, String>> updateOperation(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @RequestBody Map<String, String> operationData) throws Exception {
+            @PathVariable Integer operationId,
+            @RequestBody TeamOperationRequestDTO operationData) throws Exception {
 
-        throw new UnsupportedOperationException("TODO");
+        Integer meId = (Integer) request.getAttribute("personId");
+        String message = teamService.updateTeamOperation(meId, teamId, operationId, operationData);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 
     /**
@@ -208,7 +239,6 @@ public class MeOperationsController {
      * "fname": ...,
      * "lname": ...,
      * "emailAddr": ...,
-     * "share": ...,
      * "paidAmount": ...,
      * "currencyCode": ...,
      * },
@@ -234,18 +264,30 @@ public class MeOperationsController {
     /**
      * DELETE /api/me/teams/{teamId}/operations/{operationId}
      *
-     * TODO: Deletes a specific operation.
-     * Not yet implemented.
+     * Deletes specific operation.
+     *
+     * Headers:
+     * - Authorization: Bearer <JWT>
+     *
+     * Path Variables:
+     * - teamId (Integer): ID of the team
+     * - operationId (Integer): ID of the operation
+     *
+     * Response (200 OK):
+     * { "message": "Operation removed" }
      *
      * Response (403 FORBIDDEN): If user is not a team member.
+     * Response (404 NOT FOUND): If operation cannot be found.
      */
     @DeleteMapping("/{operationId}")
     public ResponseEntity<Map<String, String>> deleteOperation(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @PathVariable Integer operationId) throws Exception {
+            @PathVariable Integer operationId) throws NotFoundException {
 
-        throw new UnsupportedOperationException("TODO");
+        Integer meId = (Integer) request.getAttribute("personId");
+        String message = teamService.removeTeamOperation(meId, teamId, operationId);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 
     /**

@@ -1,6 +1,5 @@
 package me.wisisz.controller;
 
-import me.wisisz.dto.TeamDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 
 import me.wisisz.model.Person;
@@ -8,7 +7,6 @@ import me.wisisz.model.Person;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
-import me.wisisz.exception.AppException.UserNotInTeamException;
 import me.wisisz.exception.AppException.BadRequestException;
 import me.wisisz.exception.AppException.NotFoundException;
 
@@ -88,26 +86,48 @@ public class MeSocialController {
      *         "operationId": 4,
      *         "title": "Refund",
      *         "categoryName": "Entertainment",
-     *         "totalAmount": 10.00
-     *         }
+     *         "totalAmount": 10.00,
+     *         "members": [
+     *         {
+     *         "personId": 101,
+     *         "fname": "Alice",
+     *         "lname": "Smith",
+     *         "emailAddr": "alice@example.com",
+     *         "defaultShare": 1
+     *         },
+     *         {
+     *         "personId": 102,
+     *         "fname": "Bob",
+     *         "lname": "Brown",
+     *         "emailAddr": "bob@example.com",
+     *         "defaultShare": 2
+     *         }]
      *         },
      *         {
      *         "id": 2,
      *         "teamName": "Work Project",
      *         "inviteCode": "47777777",
      *         "newestOperationDate": null, 
-     *         "newestOperation": null
+     *         "newestOperation": null,
+     *          "members": [
+     *         {
+     *         "personId": 101,
+     *         "fname": "Alice",
+     *         "lname": "Smith",
+     *         "emailAddr": "alice@example.com",
+     *         "defaultShare": 1
+     *         }]
      *         },
      *         ...]
      *         Response (404 NOT FOUND): If person not found.
      */
 
     @GetMapping("/teams")
-    public ResponseEntity<List<TeamDTO>> getTeams(HttpServletRequest request)
+    public ResponseEntity<List<TeamWithMembersDTO>> getTeams(HttpServletRequest request)
             throws Exception {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        Optional<List<TeamDTO>> teams = personService.getPersonTeams(meId);
+        Optional<List<TeamWithMembersDTO>> teams = personService.getPersonTeams(meId);
         if (teams.isPresent()) {
             return new ResponseEntity<>(teams.get(), HttpStatus.OK);
         }
@@ -167,9 +187,7 @@ public class MeSocialController {
      *         "operationId": 4,
      *         "title": "Refund",
      *         "categoryName": "Entertainment",
-     *         "totalAmount": 10.00
-     *         }
-     *         },
+     *         "totalAmount": 10.00,
      *         "members": [
      *         {
      *         "personId": 101,
@@ -245,11 +263,7 @@ public class MeSocialController {
      * Adds a new person to the team by invite code.
      *
      * @param authorizationHeader Bearer token
-     * @param teamId              Team ID
-     * @param memberData          JSON with:
-     *                            {
-     *                            "inviteCode": "6B86B273"
-     *                            }
+     * @param inviteCode          Invite code
      * @return JSON with success message or error.
      *
      *         Example response:
@@ -274,8 +288,6 @@ public class MeSocialController {
      * DELETE /api/me/teams/{teamId}/members/{personId}
      *
      * Removes a person from the team.
-     * 
-     * NOTE: Does not currently validate whether balances are settled.
      *
      * @param authorizationHeader Bearer token
      * @param teamId              Team ID
@@ -287,6 +299,7 @@ public class MeSocialController {
      *         "message": "Team member removed"
      *         }
      *
+     *         Response (400 BAD_REQUEST): If user's balanse is not settled
      *         Response (403 FORBIDDEN): If user is not a member of the team.
      *         Response (500 INTERNAL_SERVER_ERROR): Internal error
      *
@@ -295,13 +308,9 @@ public class MeSocialController {
     public ResponseEntity<Map<String, String>> removeTeamMember(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @PathVariable Integer personId) throws Exception {
+            @PathVariable Integer personId) throws BadRequestException {
 
-        try {
-            String message = teamService.removeTeamMember(teamId, personId);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        String message = teamService.removeTeamMember(teamId, personId);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 }
