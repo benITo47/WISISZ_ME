@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { CategoryMap, CategoryKey } from "../../utils/categories";
 
-// Import Twojego overlaya (dostosuj ścieżkę jeśli trzeba)
 import OverlayOperation from "../../components/OverlayOperation";
 
 interface Member {
@@ -128,13 +127,13 @@ const GroupDetailsPage: React.FC = () => {
 
       <div className={styles.summaryBox}>
         <p>
-          <strong>Rozliczenia:</strong>
+          <strong>Balance summary:</strong>
         </p>
         {summary.map((tx, index) => (
           <p key={index}>
             {tx.fromFirstName} {tx.fromLastName} ➜ {tx.toFirstName}{" "}
             {tx.toLastName}:{" "}
-            <span style={{ color: "orange" }}>{tx.amount.toFixed(2)} zł</span>
+            <span style={{ color: "#e2fb89" }}>{tx.amount.toFixed(2)} PLN</span>
           </p>
         ))}
       </div>
@@ -151,16 +150,19 @@ const GroupDetailsPage: React.FC = () => {
               className={styles.transactionItem}
               onClick={() => handleTransactionClick(op.operationId)}
             >
-              <div>
-                <FontAwesomeIcon
-                  icon={category.icon}
-                  className={styles.categoryIcon}
-                />
-                <strong style={{ marginLeft: "0.5rem" }}>
-                  {category.label}
-                </strong>
+              <div className={styles.footerLeft}>
+                <div className={styles.footerTopRow}>
+                  <FontAwesomeIcon
+                    icon={category.icon}
+                    className={styles.footerIcon}
+                  />
+                  <strong className={styles.footerTitle}>{op.title}</strong>
+                </div>
+                <div className={styles.footerSubText}>{category.label}</div>
               </div>
-              <span>{parseFloat(op.totalAmount).toFixed(2)} zł</span>
+              <div className={styles.footerAmount}>
+                {parseFloat(op.totalAmount).toFixed(2)} zł
+              </div>
             </div>
           );
         })}

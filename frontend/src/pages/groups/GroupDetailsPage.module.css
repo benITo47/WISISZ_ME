@@ -4,6 +4,7 @@
   flex-direction: column;
   gap: 1.25rem;
   max-width: 100%;
+  min-width: 50dvw;
   margin: 0 auto;
   color: var(--text-color);
   background-color: var(--background-color);
@@ -70,7 +71,7 @@
 }
 
 .transactionList {
-  max-height: 250px;
+  max-height: 60dvh;
   overflow-y: auto;
   background-color: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
@@ -81,19 +82,87 @@
   scroll-behavior: smooth;
 }
 
+/* .transactionItem { */
+/*   display: flex; */
+/*   justify-content: space-between; */
+/*   font-size: 0.95rem; */
+/*   padding: 0.6rem 0.75rem; */
+/*   border-radius: 8px; */
+/*   background-color: rgba(255, 255, 255, 0.04); */
+/*   transition: background-color 0.2s ease; */
+/*   cursor: pointer; */
+/* } */
+/**/
+/* .transactionItem:hover { */
+/*   background-color: rgba(255, 255, 255, 0.08); */
+/* } */
+
 .transactionItem {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.04);
-  transition: background-color 0.2s ease;
+  align-items: center;
+  gap: 1rem;
+
+  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  flex-wrap: wrap;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+  margin-bottom: 0.5rem;
 }
 
 .transactionItem:hover {
   background-color: rgba(255, 255, 255, 0.08);
+  transform: scale(1.01);
+}
+
+.footerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.footerTopRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footerIcon {
+  font-size: 1.2rem;
+  color: var(--accent-color, #e2f989);
+  flex-shrink: 0;
+}
+
+.footerTitle {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footerSubText {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.footerAmount {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @media (min-width: 600px) {

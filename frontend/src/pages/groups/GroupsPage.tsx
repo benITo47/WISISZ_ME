@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthProvider";
 import api from "../../api/api";
+import OverlayOperation from "../../components/OverlayOperation";
 import styles from "./GroupsPage.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import Overlay from "../../components/Overlay"; // importujemy twój komponent overlay
+import { CategoryMap, CategoryKey } from "../../utils/categories";
+import {
+  faPlus,
+  faEnvelope,
+  faMoneyBill,
+} from "@fortawesome/free-solid-svg-icons";
+import Overlay from "../../components/Overlay";
 
 interface Member {
   personId: number;
@@ -22,31 +27,25 @@ interface Operation {
   totalAmount: number;
 }
 
-interface Group {
+interface GroupFull {
   teamId: number;
   teamName: string;
   inviteCode: string;
-  newestOperationDate: Date;
-  newestOperation: Operation;
-}
-
-interface GroupDetails {
-  teamId: number;
-  teamName: string;
-  members: Member[];
+  newestOperationDate: string | null;
+  newestOperation: Operation | null;
+  members?: Member[];
 }
 
 const GroupsPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [groupDetails, setGroupDetails] = useState<
-    Record<number, GroupDetails>
-  >({});
+  const [groups, setGroups] = useState<GroupFull[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateOverlay, setShowCreateOverlay] = useState(false);
   const [showJoinOverlay, setShowJoinOverlay] = useState(false);
+  const [selectedOpId, setSelectedOpId] = useState<number | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGroups();
@@ -55,30 +54,32 @@ const GroupsPage: React.FC = () => {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      const response = await api.get<Group[]>("/me/teams");
-      setGroups(response.data);
+      setError(null);
 
-      const detailsMap: Record<number, GroupDetails> = {};
-      const detailsPromises = response.data.map((group) =>
-        api.get<GroupDetails>(`/me/teams/${group.teamId}`).then((res) => {
-          detailsMap[group.id] = res.data;
+      const response = await api.get<GroupFull[]>("/me/teams");
+      const groupsData = response.data;
+
+      const groupsWithMembers = await Promise.all(
+        groupsData.map(async (group) => {
+          try {
+            const detailsRes = await api.get<{ members: Member[] }>(
+              `/me/teams/${group.teamId}`,
+            );
+            return { ...group, members: detailsRes.data.members };
+          } catch {
+            return group;
+          }
         }),
       );
 
-      await Promise.all(detailsPromises);
-      setGroupDetails(detailsMap);
-    } catch (err: any) {
+      setGroups(groupsWithMembers);
+    } catch (err) {
       console.error(err);
       setError("Failed to load groups.");
     } finally {
       setLoading(false);
     }
   };
-
-  const handleGroupClick = (groupId: number): void => {
-    navigate(`/group/${groupId}`);
-  };
-
   const handleCreateGroup = async (teamName: string) => {
     try {
       await api.post("/me/teams", { teamName });
@@ -132,39 +133,100 @@ const GroupsPage: React.FC = () => {
             You don't belong to any groups yet.
           </p>
         ) : (
-          groups.map((group) => {
-            const details = groupDetails[group.id];
-            return (
-              <div
-                key={group.id}
-                className={styles["groups-square"]}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleGroupClick(group.teamId)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && handleGroupClick(group.teamId)
-                }
-              >
-                <p className={styles["groups-simple-text"]}>{group.teamName}</p>
-                <div className={styles["group-info-text"]}>
-                  Invite code:{" "}
-                  <span className={styles.code}>{group.inviteCode}</span>
-                </div>
-                {details?.members && (
-                  <div className={styles["circles-container"]}>
-                    {details.members.map((member) => (
-                      <div key={member.personId} className={styles.circle}>
-                        {member.fname.charAt(0).toUpperCase()}
-                      </div>
-                    ))}
-                  </div>
-                )}
+          groups.map((group) => (
+            <div
+              key={group.teamId}
+              className={styles["groups-square"]}
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/group/${group.teamId}`)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && navigate(`/group/${group.teamId}`)
+              }
+            >
+              <p className={styles["groups-simple-text"]}>{group.teamName}</p>
+              <div className={styles["group-info-text"]}>
+                Invite code:{" "}
+                <span className={styles.code}>{group.inviteCode}</span>
               </div>
-            );
-          })
+              {group.members && (
+                <div className={styles["circles-container"]}>
+                  {group.members.map((member) => (
+                    <div key={member.personId} className={styles.circle}>
+                      {member.fname.charAt(0).toUpperCase()}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
+      {groups.some((g) => g.newestOperation) && (
+        <>
+          <div className={styles["header-row"]}>
+            <p className={styles.subText}>Latest transactions</p>
+          </div>
+
+          <div className={styles.latestList}>
+            {groups
+              .filter((g) => g.newestOperation)
+              .map((group) => (
+                <div
+                  key={group.teamId}
+                  className={styles.footer}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    setSelectedOpId(group.newestOperation!.operationId);
+                    setSelectedGroupId(group.teamId.toString());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setSelectedOpId(group.newestOperation!.operationId);
+                      setSelectedGroupId(group.teamId.toString());
+                    }
+                  }}
+                >
+                  <div className={styles.footerLeft}>
+                    <div className={styles.footerTopRow}>
+                      <FontAwesomeIcon
+                        icon={
+                          CategoryMap[
+                            group.newestOperation!.categoryName.toUpperCase() as CategoryKey
+                          ]?.icon ?? CategoryMap["MISC"].icon
+                        }
+                        className={styles.footerIcon}
+                      />
+                      <strong className={styles.footerTitle}>
+                        {group.newestOperation!.title}
+                      </strong>
+                    </div>
+                    <div className={styles.footerSubText}>
+                      Group: {group.teamName}
+                    </div>
+                  </div>
+                  <div className={styles.footerAmount}>
+                    {group.newestOperation!.totalAmount.toFixed(2)} PLN
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {selectedOpId && selectedGroupId && (
+            <OverlayOperation
+              operationId={selectedOpId}
+              teamId={selectedGroupId}
+              visible={true}
+              onClose={() => {
+                setSelectedOpId(null);
+                setSelectedGroupId(null);
+              }}
+            />
+          )}
+        </>
+      )}
       <Overlay
         visible={showCreateOverlay}
         onClose={() => setShowCreateOverlay(false)}

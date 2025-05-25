@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import styles from "./Overlay.module.css";
+import React, { useEffect, useState, useMemo } from "react";
+import styles from "./OverlayOperation.module.css";
 import Button from "./Button";
 import api from "../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,7 +10,7 @@ interface Participant {
   fname: string;
   lname: string;
   emailAddr: string;
-  share: number;
+  share: number | null;
   paidAmount: number;
   currencyCode: string;
 }
@@ -53,7 +53,7 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
         );
         setOperation(res.data);
       } catch (err: any) {
-        setError("Failed to load operation detials.");
+        setError("Failed to load operation details.");
       } finally {
         setLoading(false);
       }
@@ -62,9 +62,14 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
     fetchOperation();
   }, [teamId, operationId, visible]);
 
+  const payer = useMemo(() => {
+    if (!operation) return null;
+    return operation.participants.find((p) => p.paidAmount > 0) ?? null;
+  }, [operation]);
+
   if (!visible) return null;
 
-  let category = CategoryMap.MISC; // fallback
+  let category = CategoryMap.MISC;
   if (operation?.categoryName) {
     const key = operation.categoryName.trim().toUpperCase();
     if (key in CategoryMap) {
@@ -76,52 +81,68 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
     <div className={styles.overlay}>
       <div className={styles.modal}>
         {loading ? (
-          <p>⏳ Ładowanie...</p>
+          <p>⏳ Loading...</p>
         ) : error ? (
           <p className={styles.error}>{error}</p>
         ) : operation ? (
           <>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-            >
-              <FontAwesomeIcon icon={category.icon} />
-              <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>
-                {category.label}
-              </span>
+            <div className={styles.header}>
+              <FontAwesomeIcon icon={category.icon} className={styles.icon} />
+              <h2>{operation.title}</h2>
             </div>
-            <h2>{operation.title}</h2>
-            <p style={{ fontStyle: "italic", color: "#bbb" }}>
-              {new Date(operation.operationDate).toLocaleString("pl-PL")}
+
+            <p className={styles.date}>
+              {new Date(operation.operationDate).toLocaleString("en-GB")}
             </p>
-            <p>{operation.description}</p>
-            <p>
-              <strong>Suma:</strong>{" "}
+
+            <p className={styles.description}>
+              {operation.description || "No description provided."}
+            </p>
+
+            <p className={styles.total}>
+              <strong>Total:</strong>{" "}
               {parseFloat(operation.totalAmount).toFixed(2)} zł
             </p>
-            <div>
-              <strong>Uczestnicy:</strong>
-              <ul style={{ marginTop: "0.5rem" }}>
+
+            {payer && (
+              <p className={styles.payer}>
+                <strong>Paid by:</strong> {payer.fname} {payer.lname} -{" "}
+                {operation.totalAmount.toFixed(2)} {payer.currencyCode}
+              </p>
+            )}
+
+            <div className={styles.participants}>
+              <strong>Participants & Balances:</strong>
+              <ul>
                 {operation.participants.map((p) => (
-                  <li key={p.personId} style={{ marginBottom: "0.25rem" }}>
-                    {p.fname} {p.lname} ({p.emailAddr}) – paid:{" "}
-                    {p.paidAmount.toFixed(2)} {p.currencyCode}, udział:{" "}
-                    {p.share.toFixed(2)}%
+                  <li key={p.personId} className={styles.participantItem}>
+                    <span>
+                      {p.fname} {p.lname} ({p.emailAddr})
+                    </span>
+                    <span
+                      className={
+                        p.paidAmount > 0
+                          ? styles.balancePositive
+                          : p.paidAmount < 0
+                            ? styles.balanceNegative
+                            : styles.balanceZero
+                      }
+                    >
+                      {p.paidAmount > 0 && "+"}
+                      {p.paidAmount.toFixed(2)} {p.currencyCode}
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
           </>
         ) : (
-          <p>Brak danych do wyświetlenia.</p>
+          <p>No data available to display.</p>
         )}
 
-        <div className={styles["modal-buttons"]}>
-          <Button
-            className={styles.cancel}
-            style={{ backgroundColor: "rgba(220,11,11,0.5)" }}
-            onClick={onClose}
-          >
-            Zamknij
+        <div className={styles.modalButtons}>
+          <Button className={styles.cancel} onClick={onClose}>
+            Close
           </Button>
         </div>
       </div>
