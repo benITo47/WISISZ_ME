@@ -13,8 +13,8 @@ public record OperationMemberDTO(
         BigDecimal paidAmount,
         String currencyCode) {
 
-    public OperationMemberDTO(TeamMember m, BigDecimal amount, String currencyCode) {
+    public OperationMemberDTO(TeamMember m, BigDecimal amount, BigDecimal share, String currencyCode) {
         this(m.getPerson().getId(), m.getPerson().getFname(), m.getPerson().getLname(), m.getPerson().getEmailAddr(),
-                m.getDefaultShare(), amount, currencyCode);
+                share, amount, currencyCode);
     }
 }

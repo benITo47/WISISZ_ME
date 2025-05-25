@@ -8,7 +8,6 @@ import me.wisisz.model.Person;
 import me.wisisz.service.PersonService;
 import me.wisisz.service.TeamService;
 
-import me.wisisz.exception.AppException.UserNotInTeamException;
 import me.wisisz.exception.AppException.BadRequestException;
 import me.wisisz.exception.AppException.NotFoundException;
 
@@ -245,11 +244,7 @@ public class MeSocialController {
      * Adds a new person to the team by invite code.
      *
      * @param authorizationHeader Bearer token
-     * @param teamId              Team ID
-     * @param memberData          JSON with:
-     *                            {
-     *                            "inviteCode": "6B86B273"
-     *                            }
+     * @param inviteCode          Invite code
      * @return JSON with success message or error.
      *
      *         Example response:
@@ -274,8 +269,6 @@ public class MeSocialController {
      * DELETE /api/me/teams/{teamId}/members/{personId}
      *
      * Removes a person from the team.
-     * 
-     * NOTE: Does not currently validate whether balances are settled.
      *
      * @param authorizationHeader Bearer token
      * @param teamId              Team ID
@@ -287,6 +280,7 @@ public class MeSocialController {
      *         "message": "Team member removed"
      *         }
      *
+     *         Response (400 BAD_REQUEST): If user's balanse is not settled
      *         Response (403 FORBIDDEN): If user is not a member of the team.
      *         Response (500 INTERNAL_SERVER_ERROR): Internal error
      *
@@ -295,13 +289,9 @@ public class MeSocialController {
     public ResponseEntity<Map<String, String>> removeTeamMember(
             HttpServletRequest request,
             @PathVariable Integer teamId,
-            @PathVariable Integer personId) throws Exception {
+            @PathVariable Integer personId) throws BadRequestException {
 
-        try {
-            String message = teamService.removeTeamMember(teamId, personId);
-            return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        String message = teamService.removeTeamMember(teamId, personId);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
     }
 }
