@@ -9,12 +9,11 @@ public record OperationMemberDTO(
         String fname,
         String lname,
         String emailAddr,
-        BigDecimal share,
         BigDecimal paidAmount,
         String currencyCode) {
 
-    public OperationMemberDTO(TeamMember m, BigDecimal amount, BigDecimal share, String currencyCode) {
+    public OperationMemberDTO(TeamMember m, BigDecimal amount, String currencyCode) {
         this(m.getPerson().getId(), m.getPerson().getFname(), m.getPerson().getLname(), m.getPerson().getEmailAddr(),
-                share, amount, currencyCode);
+                amount, currencyCode);
     }
 }

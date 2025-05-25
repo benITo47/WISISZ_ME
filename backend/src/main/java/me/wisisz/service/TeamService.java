@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -196,7 +195,7 @@ public class TeamService {
             throw new BadRequestException("Current user (sender) is not listed among participants");
         }
 
-        List<OperationEntry> allOperationEntries = createOperationEntries(newOperation, data.getOperationType(), totalAmount, participants, meId, teamId);
+        List<OperationEntry> allOperationEntries = createOperationEntries(newOperation, participants, meId, teamId);
 
         operationRepository.save(newOperation);
         for (OperationEntry newEntry : allOperationEntries)
@@ -243,7 +242,7 @@ public class TeamService {
         List<OperationEntry> oldEntries = operationEntryRepository.findByOperation(updatedOperation);
         operationEntryRepository.deleteAll(oldEntries);
 
-        List<OperationEntry> newOperationEntries = createOperationEntries(updatedOperation, data.getOperationType(), totalAmount, participants, meId, teamId);
+        List<OperationEntry> newOperationEntries = createOperationEntries(updatedOperation, participants, meId, teamId);
         
         operationRepository.save(updatedOperation);
         for (OperationEntry newEntry : newOperationEntries)
@@ -254,110 +253,28 @@ public class TeamService {
         return "Operation updated";
     }
 
-    private List<OperationEntry> createOperationEntries(Operation newOperation, String dataType, BigDecimal totalAmount, List<OperationParticipantDTO> participants, Integer meId, Integer teamId)
+    private List<OperationEntry> createOperationEntries(Operation newOperation, List<OperationParticipantDTO> participants, Integer meId, Integer teamId)
         throws UserNotInTeamException, BadRequestException {
 
         List<OperationEntry> allOperationEntries = new ArrayList<>();
 
-        switch (dataType) {
-            case "expense": {
-                BigDecimal totalShare = participants.stream()
-                    .map(p -> new BigDecimal(p.getShare()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (OperationParticipantDTO participant : participants) {
+            Integer personId = Integer.valueOf(participant.getPersonId());
+            BigDecimal paidAmount = new BigDecimal(participant.getPaidAmount());
 
-                BigDecimal oneShare = totalAmount.divide(totalShare, 2, RoundingMode.HALF_UP);
+            Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
 
-                for (OperationParticipantDTO participant : participants) {
-                    Integer personId = Integer.valueOf(participant.getPersonId());
-                    BigDecimal share = new BigDecimal(participant.getShare());
-
-                    Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
-
-                    if (teamMember.isEmpty()) {
-                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
-                    }
-
-                    BigDecimal memberShare = oneShare.multiply(share).negate();
-                    if (personId.equals(meId)) {
-                        memberShare = memberShare.add(totalAmount);
-                    }
-
-                    OperationEntry entry = new OperationEntry();
-                    entry.setOperation(newOperation);
-                    entry.setTeamMember(teamMember.get());
-                    entry.setAmount(memberShare);
-
-                    allOperationEntries.add(entry);
-                }
-                break;
-            }
-            
-            case "income": {
-                BigDecimal totalShare = participants.stream()
-                    .map(p -> new BigDecimal(p.getShare()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                BigDecimal oneShare = totalAmount.divide(totalShare, 2, RoundingMode.HALF_UP);
-
-                for (OperationParticipantDTO participant : participants) {
-                    Integer personId = Integer.valueOf(participant.getPersonId());
-                    BigDecimal share = new BigDecimal(participant.getShare());
-
-                    Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
-                    if (teamMember.isEmpty()) {
-                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
-                    }
-
-                    BigDecimal memberShare = oneShare.multiply(share);
-                    if (personId.equals(meId)) {
-                        memberShare = memberShare.subtract(totalAmount);
-                    }
-
-                    OperationEntry entry = new OperationEntry();
-                    entry.setOperation(newOperation);
-                    entry.setTeamMember(teamMember.get());
-                    entry.setAmount(memberShare);
-
-                    allOperationEntries.add(entry);
-                }
-                break;
+            if (teamMember.isEmpty()) {
+                throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
             }
 
-            case "transfer": { 
-                if (participants.size() != 2) {
-                    throw new BadRequestException("Transfer operation must involve exactly 2 participants");
-                }
+            OperationEntry entry = new OperationEntry();
+            entry.setOperation(newOperation);
+            entry.setTeamMember(teamMember.get());
+            entry.setAmount(paidAmount);
 
-                for (OperationParticipantDTO participant : participants) {
-                    Integer personId = Integer.valueOf(participant.getPersonId());
-
-                    Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
-                    if (teamMember.isEmpty()) {
-                        throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
-                    }
-                    
-                    OperationEntry entry = new OperationEntry();
-                    entry.setOperation(newOperation);
-                    entry.setTeamMember(teamMember.get());
-                    entry.setAmount(totalAmount);
-
-                    if (personId.equals(meId)) {
-                        entry.setAmount(totalAmount);
-                    } else {
-                        entry.setAmount(totalAmount.negate());
-                    }
-
-                    allOperationEntries.add(entry);
-                }
-                break;
-            }
-
-            default: {
-                throw new BadRequestException("Invalid operation type.");
-            }
-
+            allOperationEntries.add(entry);
         }
-
         return allOperationEntries;
     }
 

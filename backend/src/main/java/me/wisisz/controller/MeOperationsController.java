@@ -98,6 +98,7 @@ public class MeOperationsController {
      * "operationId": 101,
      * "title": "Lunch",
      * "totalAmount": "250.0",
+     * "currencyCode": "USD",
      * "categoryName": "Restaurant",
      * },
      * ...]
@@ -141,7 +142,7 @@ public class MeOperationsController {
      * "participants": [
      * {
      *  "personId": "1",
-     *  "share": "2",
+     *  "paidAmount": "2",
      * },
      * ...]
      * }
@@ -188,7 +189,7 @@ public class MeOperationsController {
      * "participants": [
      * {
      *  "personId": "1",
-     *  "share": "2",
+     *  "paidAmount": "2",
      * },
      * ...]
      * }
@@ -238,7 +239,6 @@ public class MeOperationsController {
      * "fname": ...,
      * "lname": ...,
      * "emailAddr": ...,
-     * "share": ...,
      * "paidAmount": ...,
      * "currencyCode": ...,
      * },

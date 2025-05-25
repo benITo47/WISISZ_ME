@@ -1,6 +1,6 @@
 package me.wisisz.service;
 
-import me.wisisz.dto.TeamDTO;
+import me.wisisz.dto.TeamWithMembersDTO;
 
 import me.wisisz.model.Person;
 import me.wisisz.repository.PersonRepository;
@@ -33,8 +33,8 @@ public class PersonService {
         return personRepository.findByEmailAddr(emailAddr);
     }
 
-    public Optional<List<TeamDTO>> getPersonTeams(Integer personId) {
-        return personRepository.findById(personId).map(p -> p.getTeams().stream().map(t -> new TeamDTO(t, operationRepository.findFirstByTeamIdOrderByOperationDateDesc(t.getId()))).toList());
+    public Optional<List<TeamWithMembersDTO>> getPersonTeams(Integer personId) {
+        return personRepository.findById(personId).map(p -> p.getTeams().stream().map(t -> new TeamWithMembersDTO(t, operationRepository.findFirstByTeamIdOrderByOperationDateDesc(t.getId()))).toList());
     }
 
     public Person savePerson(Person person) {

@@ -8,6 +8,7 @@ public record OperationSummaryDTO(
         Integer operationId,
         String title,
         String categoryName,
+        String currencyCode,
         BigDecimal totalAmount) {
 
     public OperationSummaryDTO(Operation o) {
@@ -15,6 +16,7 @@ public record OperationSummaryDTO(
                 o.getId(),
                 o.getTitle(),
                 o.getCategory().getCategoryName(),
+                o.getCurrencyCode(),
                 o.getTotalAmount());
     }
 }

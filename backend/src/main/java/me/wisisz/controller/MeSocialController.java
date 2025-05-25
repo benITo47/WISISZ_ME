@@ -1,6 +1,5 @@
 package me.wisisz.controller;
 
-import me.wisisz.dto.TeamDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 
 import me.wisisz.model.Person;
@@ -87,26 +86,48 @@ public class MeSocialController {
      *         "operationId": 4,
      *         "title": "Refund",
      *         "categoryName": "Entertainment",
-     *         "totalAmount": 10.00
-     *         }
+     *         "totalAmount": 10.00,
+     *         "members": [
+     *         {
+     *         "personId": 101,
+     *         "fname": "Alice",
+     *         "lname": "Smith",
+     *         "emailAddr": "alice@example.com",
+     *         "defaultShare": 1
+     *         },
+     *         {
+     *         "personId": 102,
+     *         "fname": "Bob",
+     *         "lname": "Brown",
+     *         "emailAddr": "bob@example.com",
+     *         "defaultShare": 2
+     *         }]
      *         },
      *         {
      *         "id": 2,
      *         "teamName": "Work Project",
      *         "inviteCode": "47777777",
      *         "newestOperationDate": null, 
-     *         "newestOperation": null
+     *         "newestOperation": null,
+     *          "members": [
+     *         {
+     *         "personId": 101,
+     *         "fname": "Alice",
+     *         "lname": "Smith",
+     *         "emailAddr": "alice@example.com",
+     *         "defaultShare": 1
+     *         }]
      *         },
      *         ...]
      *         Response (404 NOT FOUND): If person not found.
      */
 
     @GetMapping("/teams")
-    public ResponseEntity<List<TeamDTO>> getTeams(HttpServletRequest request)
+    public ResponseEntity<List<TeamWithMembersDTO>> getTeams(HttpServletRequest request)
             throws Exception {
 
         Integer meId = (Integer) request.getAttribute("personId");
-        Optional<List<TeamDTO>> teams = personService.getPersonTeams(meId);
+        Optional<List<TeamWithMembersDTO>> teams = personService.getPersonTeams(meId);
         if (teams.isPresent()) {
             return new ResponseEntity<>(teams.get(), HttpStatus.OK);
         }
@@ -166,9 +187,7 @@ public class MeSocialController {
      *         "operationId": 4,
      *         "title": "Refund",
      *         "categoryName": "Entertainment",
-     *         "totalAmount": 10.00
-     *         }
-     *         },
+     *         "totalAmount": 10.00,
      *         "members": [
      *         {
      *         "personId": 101,
