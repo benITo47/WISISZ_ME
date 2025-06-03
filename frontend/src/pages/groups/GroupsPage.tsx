@@ -57,22 +57,7 @@ const GroupsPage: React.FC = () => {
       setError(null);
 
       const response = await api.get<GroupFull[]>("/me/teams");
-      const groupsData = response.data;
-
-      const groupsWithMembers = await Promise.all(
-        groupsData.map(async (group) => {
-          try {
-            const detailsRes = await api.get<{ members: Member[] }>(
-              `/me/teams/${group.teamId}`,
-            );
-            return { ...group, members: detailsRes.data.members };
-          } catch {
-            return group;
-          }
-        }),
-      );
-
-      setGroups(groupsWithMembers);
+      setGroups(response.data);
     } catch (err) {
       console.error(err);
       setError("Failed to load groups.");
@@ -80,6 +65,7 @@ const GroupsPage: React.FC = () => {
       setLoading(false);
     }
   };
+
   const handleCreateGroup = async (teamName: string) => {
     try {
       await api.post("/me/teams", { teamName });

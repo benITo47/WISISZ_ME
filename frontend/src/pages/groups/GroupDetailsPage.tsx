@@ -30,6 +30,7 @@ interface OperationSummary {
   operationId: number;
   title: string;
   totalAmount: string;
+  currenctCode: string;
   categoryName: string;
 }
 
@@ -133,7 +134,9 @@ const GroupDetailsPage: React.FC = () => {
           <p key={index}>
             {tx.fromFirstName} {tx.fromLastName} ➜ {tx.toFirstName}{" "}
             {tx.toLastName}:{" "}
-            <span style={{ color: "#e2fb89" }}>{tx.amount.toFixed(2)} PLN</span>
+            <span style={{ color: "#e2fb89" }}>
+              {tx.amount.toFixed(2)} {}
+            </span>
           </p>
         ))}
       </div>
