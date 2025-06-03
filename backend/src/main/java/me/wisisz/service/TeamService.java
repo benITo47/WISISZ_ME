@@ -172,8 +172,7 @@ public class TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BadRequestException("Team not found"));
 
-        Category category = categoryRepository.findById(Integer.parseInt(data.getCategoryId()))
-                .orElseThrow(() -> new BadRequestException("Category not found"));
+        Category category = categoryRepository.findByCategoryName(data.getCategoryName()) ;
 
         Operation newOperation = new Operation();
         newOperation.setTeam(team);
@@ -214,8 +213,7 @@ public class TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BadRequestException("Team not found"));
 
-        Category category = categoryRepository.findById(Integer.parseInt(data.getCategoryId()))
-                .orElseThrow(() -> new BadRequestException("Category not found"));
+        Category category = categoryRepository.findByCategoryName(data.getCategoryName());
 
         Operation updatedOperation = operationRepository.findById(operationId)
                 .orElseThrow(() -> new BadRequestException("Operation not found"));
