@@ -1,0 +1,395 @@
+import React, { useState, useEffect } from "react";
+import styles from "./AddOperationOverlay.module.css";
+import Button from "./Button";
+import InputField from "./InputField";
+import TextAreaField from "./TextArea";
+import SelectField from "./SelectField";
+import api from "../api/api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
+import { CategoryMap } from "../utils/categories";
+
+interface Participant {
+  personId: number;
+  fname: string;
+  lname: string;
+  emailAddr: string;
+  defaultShare?: number;
+}
+
+interface AddOperationOverlayProps {
+  teamId: string;
+  visible: boolean;
+  onClose: () => void;
+  participants: Participant[];
+  currencyCode: string;
+}
+
+const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
+  teamId,
+  visible,
+  onClose,
+  participants,
+  currencyCode,
+}) => {
+  const [title, setTitle] = useState("");
+  const [totalAmount, setTotalAmount] = useState("");
+  const [categoryId, setCategoryId] = useState(1);
+  const [description, setDescription] = useState("");
+  const [selectedParticipants, setSelectedParticipants] = useState<
+    Participant[]
+  >([]);
+  const [shares, setShares] = useState<Record<number, number>>({});
+  const [fixedAmounts, setFixedAmounts] = useState<Record<number, number>>({});
+  const [editSplitsActive, setEditSplitsActive] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const categoryOptions = Object.entries(CategoryMap).map(
+    ([key, category]) => ({
+      value: key,
+      label: category.label,
+    }),
+  );
+
+  useEffect(() => {
+    if (participants.length > 0) {
+      setSelectedParticipants(participants);
+      // Domyślne udziały = 1 na osobę
+      const defaultShares: Record<number, number> = {};
+      participants.forEach((p) => (defaultShares[p.personId] = 1));
+      setShares(defaultShares);
+      // Brak fixedAmounts domyślnie
+      setFixedAmounts({});
+    }
+  }, [participants]);
+
+  useEffect(() => {
+    const amount = parseFloat(totalAmount);
+    if (!amount || amount <= 0 || selectedParticipants.length === 0) {
+      setError(null);
+      return;
+    }
+    let sumFixed = 0;
+    selectedParticipants.forEach((p) => {
+      sumFixed += fixedAmounts[p.personId] ?? 0;
+    });
+    if (sumFixed > amount) {
+      setError("Sum of fixed amounts exceeds total amount");
+    } else {
+      setError(null);
+    }
+  }, [totalAmount, fixedAmounts, selectedParticipants]);
+
+  const calculateSplits = (): Record<number, number> => {
+    const amount = parseFloat(totalAmount);
+    if (!amount || amount <= 0 || selectedParticipants.length === 0) return {};
+
+    let sumFixed = 0;
+    selectedParticipants.forEach((p) => {
+      sumFixed += fixedAmounts[p.personId] ?? 0;
+    });
+    if (sumFixed > amount) return {};
+
+    const remaining = amount - sumFixed;
+
+    let sumShares = 0;
+    selectedParticipants.forEach((p) => {
+      if (!(fixedAmounts[p.personId] ?? 0) > 0) {
+        sumShares += shares[p.personId] ?? 1;
+      }
+    });
+
+    const result: Record<number, number> = {};
+    selectedParticipants.forEach((p) => {
+      const fixed = fixedAmounts[p.personId] ?? 0;
+      if (fixed > 0) {
+        result[p.personId] = fixed;
+      } else {
+        const share = shares[p.personId] ?? 1;
+        result[p.personId] =
+          sumShares > 0 ? (share / sumShares) * remaining : 0;
+      }
+    });
+
+    return result;
+  };
+
+  const currentSplits = calculateSplits();
+
+  const handleShareChange = (personId: number, value: number) => {
+    if (value <= 0) return;
+    setShares((prev) => ({
+      ...prev,
+      [personId]: value,
+    }));
+  };
+
+  const handleFixedAmountChange = (personId: number, value: number) => {
+    if (value < 0) return;
+    setFixedAmounts((prev) => ({
+      ...prev,
+      [personId]: value,
+    }));
+  };
+
+  const toggleParticipant = (p: Participant) => {
+    const exists = selectedParticipants.find(
+      (sp) => sp.personId === p.personId,
+    );
+    if (exists) {
+      setSelectedParticipants(
+        selectedParticipants.filter((sp) => sp.personId !== p.personId),
+      );
+      // Usuń też z udziałów i fixedów
+      setShares((prev) => {
+        const copy = { ...prev };
+        delete copy[p.personId];
+        return copy;
+      });
+      setFixedAmounts((prev) => {
+        const copy = { ...prev };
+        delete copy[p.personId];
+        return copy;
+      });
+    } else {
+      setSelectedParticipants([...selectedParticipants, p]);
+      setShares((prev) => ({
+        ...prev,
+        [p.personId]: 1,
+      }));
+      setFixedAmounts((prev) => ({
+        ...prev,
+        [p.personId]: 0,
+      }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!title.trim()) {
+      setError("Title is required");
+      return;
+    }
+    const amountNum = parseFloat(totalAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setError("Total Amount must be positive");
+      return;
+    }
+    if (selectedParticipants.length === 0) {
+      setError("Select at least one participant");
+      return;
+    }
+    if (error) {
+      return;
+    }
+
+    const category_dummy = 1;
+    setLoading(true);
+    try {
+      const payload = {
+        title,
+        totalAmount,
+        categoryId: category_dummy,
+        currencyCode: "USD",
+        description,
+        operationType: "expense",
+        participants: selectedParticipants.map((p) => ({
+          personId: p.personId,
+          paidAmount: currentSplits[p.personId] ?? 0,
+        })),
+      };
+      await api.post(`/me/teams/${teamId}/operations`, payload);
+      onClose();
+    } catch (err: any) {
+      setError("Failed to add operation.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getInitials = (p: Participant) =>
+    (p.fname[0] + p.lname[0]).toUpperCase();
+
+  if (!visible) return null;
+
+  return (
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        <div className={styles.header}>
+          <FontAwesomeIcon icon={faPlusCircle} className={styles.icon} />
+          <h2>Add Operation</h2>
+        </div>
+
+        {error && <p className={styles.error}>{error}</p>}
+
+        <InputField
+          value={title}
+          onChange={setTitle}
+          placeholder="Title"
+          required
+        />
+
+        <InputField
+          value={totalAmount}
+          onChange={setTotalAmount}
+          placeholder="Total Amount"
+          type="number"
+          validator={(v) => parseFloat(v) > 0}
+          errorMessage="Amount must be a positive number"
+          required
+        />
+
+        <div className={styles.participantsSelector}>
+          <label>Participants (click to select):</label>
+          <div className={styles.participantsCircles}>
+            {participants.map((p) => {
+              const selected = selectedParticipants.some(
+                (sp) => sp.personId === p.personId,
+              );
+              return (
+                <div
+                  key={p.personId}
+                  className={`${styles.participantCircleWrapper} ${
+                    selected ? styles.selectedWrapper : ""
+                  }`}
+                  onClick={() => toggleParticipant(p)}
+                  title={`${p.fname} ${p.lname}`}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ")
+                      toggleParticipant(p);
+                  }}
+                >
+                  <div className={styles.participantCircle}>
+                    {getInitials(p)}
+                  </div>
+                  <div className={styles.participantAmount}>
+                    {currentSplits[p.personId] !== undefined
+                      ? currentSplits[p.personId].toFixed(2)
+                      : ""}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {editSplitsActive && (
+          <div className={styles.editSplits}>
+            <label>Edit shares and fixed amounts:</label>
+
+            <div className={styles.splitsInputs}>
+              {selectedParticipants.map((p) => {
+                const fixed = fixedAmounts[p.personId] ?? 0;
+                const share = shares[p.personId] ?? 1;
+                return (
+                  <div key={p.personId} className={styles.splitRow}>
+                    <span>
+                      {p.fname} {p.lname}
+                    </span>
+
+                    <div className={styles.shareButtons}>
+                      {[0.5, 1, 2].map((val) => (
+                        <Button
+                          key={val}
+                          onClick={() => handleShareChange(p.personId, val)}
+                          className={`${styles.shareBtn} ${
+                            share === val ? styles.shareBtnActive : ""
+                          }`}
+                        >
+                          {val}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <label className={styles.fixedAmountLabel}>
+                      <input
+                        type="checkbox"
+                        checked={fixed > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleFixedAmountChange(p.personId, 0);
+                          } else {
+                            handleFixedAmountChange(p.personId, 0);
+                          }
+                        }}
+                      />
+                      Fixed Amount
+                    </label>
+
+                    <InputField
+                      value={fixed.toString()}
+                      onChange={(val) => {
+                        const numVal = parseFloat(val);
+                        if (!isNaN(numVal) && numVal >= 0) {
+                          handleFixedAmountChange(p.personId, numVal);
+                        }
+                      }}
+                      placeholder="Amount"
+                      type="number"
+                      disabled={fixed === 0}
+                      className={styles.fixedAmountInput}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {selectedParticipants.length > 0 && (
+          <Button
+            onClick={() => setEditSplitsActive((prev) => !prev)}
+            className={styles.editSplitsToggle}
+          >
+            {editSplitsActive ? "Close Edit Splits" : "Edit Splits"}
+          </Button>
+        )}
+
+        <SelectField
+          value={categoryId}
+          onChange={setCategoryId}
+          options={categoryOptions}
+          placeholder="Select category"
+          label="Category"
+          required
+        />
+
+        <TextAreaField
+          value={description}
+          onChange={setDescription}
+          placeholder="Description"
+          rows={3}
+          maxRows={3}
+          maxLength={300}
+        />
+
+        <InputField
+          value={currencyCode}
+          onChange={() => {}}
+          placeholder="Currency Code"
+          required
+          className={styles.readonlyInput}
+        />
+
+        <div className={styles.modalButtons}>
+          <Button className={styles.cancel} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            className={styles.confirm}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Adding..." : "Add Operation"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AddOperationOverlay;

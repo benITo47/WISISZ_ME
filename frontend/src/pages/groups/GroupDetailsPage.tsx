@@ -7,7 +7,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { CategoryMap, CategoryKey } from "../../utils/categories";
 
 import OverlayOperation from "../../components/OverlayOperation";
-
+import AddOperationOverlay from "../../components/AddOperationOverlay";
 interface Member {
   personId: number;
   fname: string;
@@ -45,10 +45,15 @@ const GroupDetailsPage: React.FC = () => {
   const [selectedOperationId, setSelectedOperationId] = useState<number | null>(
     null,
   );
+  const [addingOperation, setAddingOperation] = useState<bool>(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleTransactionClick = (operationId: number) => {
     setSelectedOperationId(operationId);
+  };
+
+  const handleAddOpertaionClick = (isAdding: bool) => {
+    setAddingOperation(isAdding);
   };
 
   useEffect(() => {
@@ -101,14 +106,13 @@ const GroupDetailsPage: React.FC = () => {
           role="button"
           tabIndex={0}
           onClick={() => {
-            /* jakiś handler np. do tworzenia nowej operacji */
+            handleAddOpertaionClick(true);
           }}
-          onKeyDown={(e) =>
-            e.key === "Enter" &&
-            {
-              /* ten sam handler */
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleAddOpertaionClick(true);
             }
-          }
+          }}
         >
           <FontAwesomeIcon icon={faPlus} className={styles.icon} />
         </div>
@@ -177,6 +181,15 @@ const GroupDetailsPage: React.FC = () => {
           operationId={selectedOperationId}
           visible={selectedOperationId !== null}
           onClose={() => setSelectedOperationId(null)}
+        />
+      )}
+
+      {addingOperation && id && (
+        <AddOperationOverlay
+          teamId={id}
+          visible={addingOperation}
+          onClose={() => setAddingOperation(false)}
+          participants={members}
         />
       )}
     </div>

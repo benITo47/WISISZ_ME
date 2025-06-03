@@ -12,8 +12,8 @@ const HomePage: React.FC = () => {
       <div className={styles.heroContent}>
         <h1 className={styles.heroTitle}>
           {isLoggedIn
-            ? `Witaj, ${user?.fname}!`
-            : "Wszystkie wydatki w jednym miejscu."}
+            ? `Welcome, ${user?.fname}!`
+            : "All your expenses in one place"}
         </h1>
         <div className={styles.heroButtonsSection}>
           {isLoggedIn ? (

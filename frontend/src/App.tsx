@@ -17,7 +17,6 @@ function App() {
         <Routes>
           <Route path="/" element={<PageLayout />}>
             <Route index element={<HomePage />} />
-            <Route path="/wallet" element={<HomePage />} />
             <Route path="/about" element={<HomePage />} />
 
             <Route
