@@ -37,16 +37,16 @@ public class MeOperationsController {
 
     /**
      * GET /api/me/teams/{teamId}/operations
-     *
+     * <p>
      * Retrieves all operations for a given team where the authenticated user is a
      * member.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
-     *
+     * <p>
      * Response (200 OK):
      * [
      * {
@@ -64,7 +64,7 @@ public class MeOperationsController {
      * ...]
      * }
      * ]
-     *
+     * <p>
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (404 NOT FOUND): If team or operations not found.
      */
@@ -82,16 +82,16 @@ public class MeOperationsController {
 
     /**
      * GET /api/me/teams/{teamId}/operations/summary
-     *
+     * <p>
      * Retrieves basic summary for all operations for a given team where the authenticated user is a
      * member.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
-     *
+     * <p>
      * Response (200 OK):
      * [
      * {
@@ -102,7 +102,7 @@ public class MeOperationsController {
      * "categoryName": "Restaurant",
      * },
      * ...]
-     *
+     * <p>
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (404 NOT FOUND): If team or operations not found.
      */
@@ -121,35 +121,35 @@ public class MeOperationsController {
 
     /**
      * POST /api/me/teams/{teamId}/operations
-     *
+     * <p>
      * Adds a new operation to the team.
      * Automatically generates operation entries based on the input.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
-     *
+     * <p>
      * Request Body (JSON):
      * {
      * "title": "Lunch",
-     * "totalAmount": "250.00",
+     * "totalAmount": "250.00", // paid by the person with token
      * "categoryId": "3",
      * "currencyCode": "USD",
      * "description": "Post-project lunch gathering",
      * "operationType": "expense", // or "income", "transfer"
      * "participants": [
      * {
-     *  "personId": "1",
-     *  "paidAmount": "2",
+     * "personId": "1",
+     * "owedAmount": "50.00",
      * },
      * ...]
      * }
-     *
+     * <p>
      * Response (200 OK):
      * { "message": "Operation successfully saved" }
-     *
+     * <p>
      * Response (400 BAD REQUEST): If incorrect data passed
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (500 INTERNAL SERVER ERROR): On unexpected server error.
@@ -163,40 +163,39 @@ public class MeOperationsController {
         Integer meId = (Integer) request.getAttribute("personId");
         String message = teamService.saveTeamOperation(meId, teamId, operationData);
         return new ResponseEntity<>(Map.of("message", message), HttpStatus.OK);
-
     }
 
     /**
      * PUT /api/me/teams/{teamId}/operations/{operationId}
-     *
+     * <p>
      * Updates an existing operation.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
      * - operationId (Integer): ID of the operation
-     *
+     * <p>
      * Request Body (JSON):
      * {
      * "title": "Lunch",
-     * "totalAmount": "250.00",
+     * "totalAmount": "250.00", // paid by the person with token
      * "categoryId": "3",
      * "currencyCode": "USD",
      * "description": "Post-project lunch gathering",
      * "operationType": "expense", // or "income", "transfer"
      * "participants": [
      * {
-     *  "personId": "1",
-     *  "paidAmount": "2",
+     * "personId": "1",
+     * "owedAmount": "50.00",
      * },
      * ...]
      * }
-     *
+     * <p>
      * Response (200 OK):
      * { "message": "Operation successfully updated" }
-     *
+     * <p>
      * Response (400 BAD REQUEST): If incorrect data passed
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (500 INTERNAL SERVER ERROR): On unexpected server error.
@@ -215,17 +214,17 @@ public class MeOperationsController {
 
     /**
      * GET /api/me/teams/{teamId}/operations/{operationId}
-     *
+     * <p>
      * Retrieves specific operation for a given team where the authenticated user is a
      * member.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
      * - operationId (Integer): ID of the operation
-     *
+     * <p>
      * Response (200 OK):
      * {
      * "title": "Lunch",
@@ -244,7 +243,7 @@ public class MeOperationsController {
      * },
      * ...]
      * }
-     *
+     * <p>
      * Response (403 FORBIDDEN): If user is not a member of the team.
      * Response (404 NOT FOUND): If team or operation not found.
      */
@@ -263,19 +262,19 @@ public class MeOperationsController {
 
     /**
      * DELETE /api/me/teams/{teamId}/operations/{operationId}
-     *
+     * <p>
      * Deletes specific operation.
-     *
+     * <p>
      * Headers:
      * - Authorization: Bearer <JWT>
-     *
+     * <p>
      * Path Variables:
      * - teamId (Integer): ID of the team
      * - operationId (Integer): ID of the operation
-     *
+     * <p>
      * Response (200 OK):
      * { "message": "Operation removed" }
-     *
+     * <p>
      * Response (403 FORBIDDEN): If user is not a team member.
      * Response (404 NOT FOUND): If operation cannot be found.
      */
@@ -292,15 +291,15 @@ public class MeOperationsController {
 
     /**
      * GET /api/me/teams/{teamId}/operations/balance
-     *
+     * <p>
      * Retrieves the current balance of all team members.
-     *
+     * <p>
      * Response (200 OK):
      * [
      * { "firstName": "Alice", "lastName": "Smith", "balance": 123.45 },
      * { "firstName": "Bob", "lastName": "Jones", "balance": -123.45 }
      * ]
-     *
+     * <p>
      * Response (404 NOT FOUND): If no balances found.
      * Response (403 FORBIDDEN): If user is not a member.
      */
@@ -319,9 +318,9 @@ public class MeOperationsController {
 
     /**
      * GET /api/me/teams/{teamId}/operations/transactions
-     *
+     * <p>
      * Retrieves suggested transactions between users to settle balances.
-     *
+     * <p>
      * Response (200 OK):
      * [
      * {
@@ -334,7 +333,7 @@ public class MeOperationsController {
      * "amount": 75.50
      * }
      * ]
-     *
+     * <p>
      * Response (404 NOT FOUND): If no transactions found.
      * Response (403 FORBIDDEN): If user is not a member.
      */

@@ -16,6 +16,6 @@ public record TeamWithMembersDTO(
         Optional<OperationSummaryDTO> newestOperation) {
 
     public TeamWithMembersDTO(Team t, Optional<Operation> o) {
-        this(t.getId(), t.getTeamName(), t.getInviteCode(), t.getMemberships().stream().map(m -> new TeamMemberDTO(m)).toList(), o.map(Operation::getOperationDate), o.map(OperationSummaryDTO::new));
+        this(t.getId(), t.getTeamName(), t.getInviteCode(), t.getMemberships().stream().map(TeamMemberDTO::new).toList(), o.map(Operation::getOperationDate), o.map(OperationSummaryDTO::new));
     }
 }
