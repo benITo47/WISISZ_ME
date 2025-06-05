@@ -3,6 +3,7 @@ package me.wisisz.service;
 import me.wisisz.dto.OperationDTO;
 import me.wisisz.dto.OperationSummaryDTO;
 import me.wisisz.dto.TeamOperationRequestDTO;
+import me.wisisz.dto.TeamOperationsOverviewDTO;
 import me.wisisz.dto.OperationParticipantDTO;
 import me.wisisz.dto.OperationDetailDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
@@ -76,6 +77,12 @@ public class TeamService {
 
     public Optional<List<OperationSummaryDTO>> getTeamOperationsSummaryView(Integer teamId) {
         return teamRepository.findById(teamId).map(t -> t.getOperations().stream().map(o -> new OperationSummaryDTO(o)).toList());
+    }
+
+    public TeamOperationsOverviewDTO getTeamOperationsOverview(Integer teamId) throws NotFoundException {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+        return new TeamOperationsOverviewDTO(team);
     }
 
     public Optional<OperationDetailDTO> getSingleTeamOperationView(Integer teamId, Integer operationId) {

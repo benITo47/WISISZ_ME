@@ -5,6 +5,7 @@ import me.wisisz.dto.OperationSummaryDTO;
 import me.wisisz.dto.OperationDetailDTO;
 import me.wisisz.dto.TransactionDTO;
 import me.wisisz.dto.TeamOperationRequestDTO;
+import me.wisisz.dto.TeamOperationsOverviewDTO;
 import me.wisisz.model.TeamMemberBalances;
 import me.wisisz.service.TeamMemberBalancesService;
 import me.wisisz.service.TeamService;
@@ -117,6 +118,39 @@ public class MeOperationsController {
         }
 
         return new ResponseEntity<>(operations.get(), HttpStatus.OK);
+    }
+
+    
+     /**
+     * GET /api/me/teams/{teamId}/operations/overview
+     *
+     * Retrieves total amount paid by the group and its distribution among categories
+     *
+     * Headers:
+     * - Authorization: Bearer <JWT>
+     *
+     * Path Variables:
+     * - teamId (Integer): ID of the team
+     *
+     * Response (200 OK):
+     * {
+     * "totalAmount": "250.0",
+     * "amountByCategory": {
+     * "food": "150.0",
+     * "entertainment": "100.0"
+     * ...
+     * }
+     * }
+     *
+     * Response (404 NOT FOUND): If team not found.
+     * Response (403 FORBIDDEN): If user is not a member of the team.
+     */
+    @GetMapping("/overview")
+    public ResponseEntity<TeamOperationsOverviewDTO> getTeamOperationsOverview(
+            HttpServletRequest request,
+            @PathVariable Integer teamId) throws NotFoundException {
+        TeamOperationsOverviewDTO overview = teamService.getTeamOperationsOverview(teamId);
+        return new ResponseEntity<>(overview, HttpStatus.OK);
     }
 
     /**
