@@ -60,7 +60,7 @@ const RegisterPage: React.FC = () => {
         password,
       });
 
-      const accessToken = response.headers["accesstoken"];
+      const accessToken = response.headers["accessToken"];
 
       if (response.status === 200 && accessToken) {
         setToken(accessToken);
