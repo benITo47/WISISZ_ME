@@ -8,6 +8,7 @@ import me.wisisz.dto.OperationParticipantDTO;
 import me.wisisz.dto.OperationDetailDTO;
 import me.wisisz.dto.TeamWithMembersDTO;
 
+import me.wisisz.exception.AppException;
 import me.wisisz.model.Operation;
 import me.wisisz.model.OperationEntry;
 import me.wisisz.model.Team;
@@ -72,11 +73,11 @@ public class TeamService {
 
     public Optional<List<OperationDTO>> getTeamOperationsView(Integer teamId) {
         return teamRepository.findById(teamId)
-                .map(t -> t.getOperations().stream().map(o -> new OperationDTO(o)).toList());
+                .map(t -> t.getOperations().stream().map(OperationDTO::new).toList());
     }
 
     public Optional<List<OperationSummaryDTO>> getTeamOperationsSummaryView(Integer teamId) {
-        return teamRepository.findById(teamId).map(t -> t.getOperations().stream().map(o -> new OperationSummaryDTO(o)).toList());
+        return teamRepository.findById(teamId).map(t -> t.getOperations().stream().map(OperationSummaryDTO::new).toList());
     }
 
     public TeamOperationsOverviewDTO getTeamOperationsOverview(Integer teamId) throws NotFoundException {
@@ -132,7 +133,7 @@ public class TeamService {
     public String saveTeamMemberInviteCode(String inviteCode, Integer personId) throws BadRequestException, NotFoundException {
         TeamMember newTeamMember = new TeamMember();
         Optional<Team> team = teamRepository.findByInviteCode(inviteCode);
-        if (team.isEmpty()){
+        if (team.isEmpty()) {
             throw new NotFoundException("Team not found for invite code " + inviteCode);
         }
         newTeamMember.setTeam(team.get());
@@ -158,7 +159,7 @@ public class TeamService {
         Optional<TeamMemberBalances> teamMemberBalance = teamMemberBalancesRepository.findByTeam_IdAndPerson_Id(teamId, personId);
 
         if (teamMemberBalance.isEmpty()) {
-            throw new BadRequestException("Team member balance not found."); 
+            throw new BadRequestException("Team member balance not found.");
         }
 
         BigDecimal balance = teamMemberBalance.get().getBalance();
@@ -176,11 +177,21 @@ public class TeamService {
 
         BigDecimal totalAmount = new BigDecimal(data.getTotalAmount());
 
+        BigDecimal owedSum = data
+                .getParticipants()
+                .stream()
+                .map(p -> new BigDecimal(p.getOwedAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (!totalAmount.equals(owedSum)) {
+            throw new BadRequestException("Owed amounts don't add up to total paid amount");
+        }
+
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BadRequestException("Team not found"));
 
-        Category category = categoryRepository.findById(Integer.parseInt(data.getCategoryId()))
-                .orElseThrow(() -> new BadRequestException("Category not found"));
+        Category category = categoryRepository.findByCategoryName(data.getCategoryName())
+                .orElseThrow(() -> new BadRequestException("Category '" + data.getCategoryName() + "' not found"));
 
         Operation newOperation = new Operation();
         newOperation.setTeam(team);
@@ -193,20 +204,14 @@ public class TeamService {
         newOperation.setOperationType(data.getOperationType());
 
         List<OperationParticipantDTO> participants = data.getParticipants();
-        if (participants.size() < 2) {
-            throw new BadRequestException("Operation must involve at least 2 participants");
-        }
-        boolean senderIncluded = participants.stream()
-            .anyMatch(p -> Integer.valueOf(p.getPersonId()).equals(meId));
-        if (!senderIncluded) {
-            throw new BadRequestException("Current user (sender) is not listed among participants");
+        if (participants.isEmpty()) {
+            throw new BadRequestException("Operation must involve at least 1 participant");
         }
 
-        List<OperationEntry> allOperationEntries = createOperationEntries(newOperation, participants, meId, teamId);
+        List<OperationEntry> allOperationEntries = createOperationEntries(newOperation, participants, meId, teamId, totalAmount);
 
         operationRepository.save(newOperation);
-        for (OperationEntry newEntry : allOperationEntries)
-        {
+        for (OperationEntry newEntry : allOperationEntries) {
             operationEntryRepository.save(newEntry);
         }
 
@@ -218,11 +223,21 @@ public class TeamService {
 
         BigDecimal totalAmount = new BigDecimal(data.getTotalAmount());
 
+        BigDecimal owedSum = data
+                .getParticipants()
+                .stream()
+                .map(p -> new BigDecimal(p.getOwedAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (!totalAmount.equals(owedSum)) {
+            throw new BadRequestException("Owed amounts don't add up to total paid amount");
+        }
+
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BadRequestException("Team not found"));
 
-        Category category = categoryRepository.findById(Integer.parseInt(data.getCategoryId()))
-                .orElseThrow(() -> new BadRequestException("Category not found"));
+        Category category = categoryRepository.findByCategoryName(data.getCategoryName())
+                .orElseThrow(() -> new BadRequestException("Category '" + data.getCategoryName() + "' not found"));
 
         Operation updatedOperation = operationRepository.findById(operationId)
                 .orElseThrow(() -> new BadRequestException("Operation not found"));
@@ -236,49 +251,49 @@ public class TeamService {
         updatedOperation.setOperationType(data.getOperationType());
 
         List<OperationParticipantDTO> participants = data.getParticipants();
-        if (participants.size() < 2) {
-            throw new BadRequestException("Operation must involve at least 2 participants");
-        }
-
-        boolean senderIncluded = participants.stream()
-            .anyMatch(p -> Integer.valueOf(p.getPersonId()).equals(meId));
-        if (!senderIncluded) {
-            throw new BadRequestException("Current user (sender) is not listed among participants");
+        if (participants.isEmpty()) {
+            throw new BadRequestException("Operation must involve at least 1 participant");
         }
 
         List<OperationEntry> oldEntries = operationEntryRepository.findByOperation(updatedOperation);
         operationEntryRepository.deleteAll(oldEntries);
 
-        List<OperationEntry> newOperationEntries = createOperationEntries(updatedOperation, participants, meId, teamId);
-        
+        List<OperationEntry> newOperationEntries = createOperationEntries(updatedOperation, participants, meId, teamId, totalAmount);
+
         operationRepository.save(updatedOperation);
-        for (OperationEntry newEntry : newOperationEntries)
-        {
+        for (OperationEntry newEntry : newOperationEntries) {
             operationEntryRepository.save(newEntry);
         }
 
         return "Operation updated";
     }
 
-    private List<OperationEntry> createOperationEntries(Operation newOperation, List<OperationParticipantDTO> participants, Integer meId, Integer teamId)
-        throws UserNotInTeamException, BadRequestException {
+    private List<OperationEntry> createOperationEntries(Operation newOperation, List<OperationParticipantDTO> participants, Integer meId, Integer teamId, BigDecimal totalAmount)
+            throws UserNotInTeamException, BadRequestException {
 
         List<OperationEntry> allOperationEntries = new ArrayList<>();
 
+        OperationEntry payerEntry = new OperationEntry();
+        payerEntry.setOperation(newOperation);
+        TeamMember meMember = teamMemberRepository
+                .findByPerson_IdAndTeam_Id(meId, teamId)
+                .orElseThrow(() -> new UserNotInTeamException("Person with ID " + meId + " is not in the team"));
+        payerEntry.setTeamMember(meMember);
+        payerEntry.setAmount(totalAmount);
+
+        allOperationEntries.add(payerEntry);
         for (OperationParticipantDTO participant : participants) {
             Integer personId = Integer.valueOf(participant.getPersonId());
-            BigDecimal paidAmount = new BigDecimal(participant.getPaidAmount());
+            BigDecimal owedAmount = new BigDecimal(participant.getOwedAmount());
 
-            Optional<TeamMember> teamMember = teamMemberRepository.findByPerson_IdAndTeam_Id(personId, teamId);
-
-            if (teamMember.isEmpty()) {
-                throw new UserNotInTeamException("Person with ID " + personId + " is not in the team");
-            }
+            TeamMember teamMember = teamMemberRepository
+                    .findByPerson_IdAndTeam_Id(personId, teamId)
+                    .orElseThrow(() -> new UserNotInTeamException("Person with ID " + personId + " is not in the team"));
 
             OperationEntry entry = new OperationEntry();
             entry.setOperation(newOperation);
-            entry.setTeamMember(teamMember.get());
-            entry.setAmount(paidAmount);
+            entry.setTeamMember(teamMember);
+            entry.setAmount(owedAmount.negate());
 
             allOperationEntries.add(entry);
         }

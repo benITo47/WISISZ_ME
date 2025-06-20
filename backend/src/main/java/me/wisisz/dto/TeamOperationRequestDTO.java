@@ -5,7 +5,7 @@ import java.util.List;
 public class TeamOperationRequestDTO {
     private String title;
     private String totalAmount;
-    private String categoryId;
+    private String categoryName;
     private String currencyCode;
     private String description;
     private String operationType;
@@ -18,8 +18,8 @@ public class TeamOperationRequestDTO {
     public String getTotalAmount() { return totalAmount; }
     public void setTotalAmount(String totalAmount) { this.totalAmount = totalAmount; }
 
-    public String getCategoryId() { return categoryId; }
-    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
 
     public String getCurrencyCode() { return currencyCode; }
     public void setCurrencyCode(String currencyCode) { this.currencyCode = currencyCode; }
