@@ -30,7 +30,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   visible,
   onClose,
   participants,
-  currencyCode,
+  currencyCode = "PLN",
 }) => {
   const [title, setTitle] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
@@ -42,7 +42,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   const [shares, setShares] = useState<Record<number, number>>({});
   const [fixedAmounts, setFixedAmounts] = useState<Record<number, number>>({});
   const [editSplitsActive, setEditSplitsActive] = useState(false);
-
+  const [fixedEnabled, setFixedEnabled] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,12 +56,19 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   useEffect(() => {
     if (participants.length > 0) {
       setSelectedParticipants(participants);
-      // Domyślne udziały = 1 na osobę
       const defaultShares: Record<number, number> = {};
-      participants.forEach((p) => (defaultShares[p.personId] = 1));
+      const defaultFixed: Record<number, number> = {};
+      const defaultFixedEnabled: Record<number, boolean> = {};
+
+      participants.forEach((p) => {
+        defaultShares[p.personId] = 1;
+        defaultFixed[p.personId] = 0;
+        defaultFixedEnabled[p.personId] = false;
+      });
+
       setShares(defaultShares);
-      // Brak fixedAmounts domyślnie
-      setFixedAmounts({});
+      setFixedAmounts(defaultFixed);
+      setFixedEnabled(defaultFixedEnabled);
     }
   }, [participants]);
 
@@ -90,28 +97,40 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
     selectedParticipants.forEach((p) => {
       sumFixed += fixedAmounts[p.personId] ?? 0;
     });
-    if (sumFixed > amount) return {};
 
     const remaining = amount - sumFixed;
+    if (remaining < 0) return {};
 
     let sumShares = 0;
     selectedParticipants.forEach((p) => {
-      if (!(fixedAmounts[p.personId] ?? 0) > 0) {
-        sumShares += shares[p.personId] ?? 1;
-      }
+      sumShares += shares[p.personId] ?? 0;
     });
 
     const result: Record<number, number> = {};
-    selectedParticipants.forEach((p) => {
-      const fixed = fixedAmounts[p.personId] ?? 0;
-      if (fixed > 0) {
-        result[p.personId] = fixed;
-      } else {
-        const share = shares[p.personId] ?? 1;
-        result[p.personId] =
-          sumShares > 0 ? (share / sumShares) * remaining : 0;
+    let runningSum = 0;
+    selectedParticipants.forEach((p, i) => {
+      const fixed = +(fixedAmounts[p.personId] ?? 0);
+      const share = +(shares[p.personId] ?? 0);
+
+      let sharePortion = 0;
+      if (sumShares > 0 && remaining > 0) {
+        sharePortion = +(share / sumShares) * remaining;
       }
+
+      const total = fixed + sharePortion;
+      const rounded = Math.round(total * 100) / 100;
+
+      result[p.personId] = rounded;
+      runningSum += rounded;
     });
+
+    // Correct rounding errors on the last participant
+    const delta = Math.round((amount - runningSum) * 100) / 100;
+    const lastId =
+      selectedParticipants[selectedParticipants.length - 1]?.personId;
+    if (lastId !== undefined) {
+      result[lastId] = +(result[lastId] + delta).toFixed(2);
+    }
 
     return result;
   };
@@ -119,10 +138,9 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   const currentSplits = calculateSplits();
 
   const handleShareChange = (personId: number, value: number) => {
-    if (value <= 0) return;
     setShares((prev) => ({
       ...prev,
-      [personId]: value,
+      [personId]: prev[personId] === value ? 0 : value,
     }));
   };
 
@@ -163,6 +181,11 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
         ...prev,
         [p.personId]: 0,
       }));
+      setFixedEnabled((prev) => {
+        const copy = { ...prev };
+        delete copy[p.personId];
+        return copy;
+      });
     }
   };
 
@@ -285,54 +308,77 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
               {selectedParticipants.map((p) => {
                 const fixed = fixedAmounts[p.personId] ?? 0;
                 const share = shares[p.personId] ?? 1;
+                const isFixedOn = fixedEnabled[p.personId] ?? false;
                 return (
-                  <div key={p.personId} className={styles.splitRow}>
+                  <div
+                    key={p.personId}
+                    className={`
+                        ${styles.splitRow} 
+    ${share > 0 && fixed === 0 ? styles.hasShare : ""} 
+    ${fixed > 0 && share === 0 ? styles.hasFixed : ""} 
+    ${fixed > 0 && share > 0 ? styles.hasBoth : ""}
+  `}
+                  >
                     <span>
                       {p.fname} {p.lname}
                     </span>
 
-                    <div className={styles.shareButtons}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
                       {[0.5, 1, 2].map((val) => (
                         <Button
                           key={val}
                           onClick={() => handleShareChange(p.personId, val)}
-                          className={`${styles.shareBtn} ${
-                            share === val ? styles.shareBtnActive : ""
-                          }`}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            backgroundColor:
+                              share === val ? "#e2f989" : "#3e3e3e",
+                            color: share === val ? "#000" : "#0e0e0e",
+                            fontWeight: share === val ? 700 : 500,
+                          }}
                         >
                           {val}
                         </Button>
                       ))}
                     </div>
-
                     <label className={styles.fixedAmountLabel}>
                       <input
                         type="checkbox"
-                        checked={fixed > 0}
+                        checked={isFixedOn}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            handleFixedAmountChange(p.personId, 0);
-                          } else {
-                            handleFixedAmountChange(p.personId, 0);
+                          const enabled = e.target.checked;
+                          setFixedEnabled((prev) => ({
+                            ...prev,
+                            [p.personId]: enabled,
+                          }));
+
+                          if (!enabled) {
+                            handleFixedAmountChange(p.personId, 0); // reset when disabling
                           }
                         }}
                       />
-                      Fixed Amount
+                      {isFixedOn ? "" : `Fixed: ${fixed.toFixed(2)}`}
                     </label>
 
-                    <InputField
-                      value={fixed.toString()}
-                      onChange={(val) => {
-                        const numVal = parseFloat(val);
-                        if (!isNaN(numVal) && numVal >= 0) {
-                          handleFixedAmountChange(p.personId, numVal);
-                        }
-                      }}
-                      placeholder="Amount"
-                      type="number"
-                      disabled={fixed === 0}
-                      className={styles.fixedAmountInput}
-                    />
+                    {isFixedOn && (
+                      <InputField
+                        value={fixed.toString()}
+                        onChange={(val) => {
+                          if (val === "") {
+                            handleFixedAmountChange(p.personId, 0);
+                            return;
+                          }
+                          const numVal = parseFloat(val);
+                          if (!isNaN(numVal)) {
+                            handleFixedAmountChange(p.personId, numVal);
+                          }
+                        }}
+                        placeholder="Amount"
+                        type="number"
+                        step="any"
+                        className={`${styles.fixedAmountInput} ${fixed < 0 ? styles.negative : ""}`}
+                      />
+                    )}
                   </div>
                 );
               })}
