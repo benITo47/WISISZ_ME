@@ -8,6 +8,7 @@ import api from "../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
 import { CategoryMap } from "../utils/categories";
+import { useTheme } from "../context/ThemeProvider";
 
 interface Participant {
   personId: number;
@@ -34,7 +35,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
 }) => {
   const [title, setTitle] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
-  const [categoryId, setCategoryId] = useState(1);
+  const [category, setCategory] = useState<string>(Object.keys(CategoryMap)[0]);
   const [description, setDescription] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<
     Participant[]
@@ -46,6 +47,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { theme, toggleTheme } = useTheme();
   const categoryOptions = Object.entries(CategoryMap).map(
     ([key, category]) => ({
       value: key,
@@ -213,14 +215,14 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
     try {
       const payload = {
         title,
-        totalAmount,
-        categoryId: category_dummy,
+        totalAmount: parseFloat(totalAmount),
+        categoryName: CategoryMap[category].label,
         currencyCode: "USD",
         description,
         operationType: "expense",
         participants: selectedParticipants.map((p) => ({
           personId: p.personId,
-          paidAmount: currentSplits[p.personId] ?? 0,
+          owedAmount: currentSplits[p.personId] ?? 0,
         })),
       };
       await api.post(`/me/teams/${teamId}/operations`, payload);
@@ -299,6 +301,14 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
             })}
           </div>
         </div>
+        {selectedParticipants.length > 0 && (
+          <Button
+            onClick={() => setEditSplitsActive((prev) => !prev)}
+            className={styles.editSplitsToggle}
+          >
+            {editSplitsActive ? "Close Edit Splits" : "Edit Splits"}
+          </Button>
+        )}
 
         {editSplitsActive && (
           <div className={styles.editSplits}>
@@ -315,7 +325,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
                     className={`
                         ${styles.splitRow} 
     ${share > 0 && fixed === 0 ? styles.hasShare : ""} 
-    ${fixed > 0 && share === 0 ? styles.hasFixed : ""} 
+    ${fixed >= 0 && share === 0 ? styles.hasFixed : ""} 
     ${fixed > 0 && share > 0 ? styles.hasBoth : ""}
   `}
                   >
@@ -332,9 +342,22 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
                             padding: "6px 12px",
                             borderRadius: "6px",
                             backgroundColor:
-                              share === val ? "#e2f989" : "#3e3e3e",
-                            color: share === val ? "#000" : "#0e0e0e",
+                              share === val
+                                ? theme === "dark"
+                                  ? "#e2f989"
+                                  : "#747bff"
+                                : theme === "dark"
+                                  ? "#3e3e3e"
+                                  : "#f0f0f0", // ← more visible unselected color
+                            color:
+                              share === val
+                                ? "#000"
+                                : theme === "dark"
+                                  ? "#ccc"
+                                  : "#333", // ← improved unselected text color
                             fontWeight: share === val ? 700 : 500,
+                            border: "1px solid #999", // optional: add a border for clarity
+                            transition: "all 0.2s ease", // optional: for smoother feedback
                           }}
                         >
                           {val}
@@ -386,18 +409,9 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
           </div>
         )}
 
-        {selectedParticipants.length > 0 && (
-          <Button
-            onClick={() => setEditSplitsActive((prev) => !prev)}
-            className={styles.editSplitsToggle}
-          >
-            {editSplitsActive ? "Close Edit Splits" : "Edit Splits"}
-          </Button>
-        )}
-
         <SelectField
-          value={categoryId}
-          onChange={setCategoryId}
+          value={category}
+          onChange={setCategory}
           options={categoryOptions}
           placeholder="Select category"
           label="Category"
@@ -411,14 +425,6 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
           rows={3}
           maxRows={3}
           maxLength={300}
-        />
-
-        <InputField
-          value={currencyCode}
-          onChange={() => {}}
-          placeholder="Currency Code"
-          required
-          className={styles.readonlyInput}
         />
 
         <div className={styles.modalButtons}>

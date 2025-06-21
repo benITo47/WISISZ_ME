@@ -9,47 +9,49 @@ import AccountPage from "./pages/AccountPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GroupsPage from "./pages/groups/GroupsPage";
 import GroupDetailsPage from "./pages/groups/GroupDetailsPage";
-
+import { ThemeProvider } from "./context/ThemeProvider";
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<PageLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="/about" element={<HomePage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<PageLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="/about" element={<HomePage />} />
 
-            <Route
-              path="/groups"
-              element={
-                <ProtectedRoute>
-                  <GroupsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/group/:id"
-              element={
-                <ProtectedRoute>
-                  <GroupDetailsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/groups"
+                element={
+                  <ProtectedRoute>
+                    <GroupsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/group/:id"
+                element={
+                  <ProtectedRoute>
+                    <GroupDetailsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <AccountPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

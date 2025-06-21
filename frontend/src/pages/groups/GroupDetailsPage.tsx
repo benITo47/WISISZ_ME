@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import styles from "./GroupDetailsPage.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faChartSimple } from "@fortawesome/free-solid-svg-icons";
 import { CategoryMap, CategoryKey } from "../../utils/categories";
 
 import OverlayOperation from "../../components/OverlayOperation";
 import AddOperationOverlay from "../../components/AddOperationOverlay";
+import SummaryOverlay from "../../components/SummaryOverlay";
 interface Member {
   personId: number;
   fname: string;
@@ -45,8 +46,42 @@ const GroupDetailsPage: React.FC = () => {
   const [selectedOperationId, setSelectedOperationId] = useState<number | null>(
     null,
   );
-  const [addingOperation, setAddingOperation] = useState<bool>(false);
+  const [addingOperation, setAddingOperation] = useState<boolean>(false);
+  const [summaryOperation, setSummaryOperation] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const groupRes = await api.get(`/me/teams/${id}`);
+      setGroupName(groupRes.data.teamName);
+      setMembers(groupRes.data.members);
+    } catch (err: any) {
+      console.error("[group] ❌ Failed to fetch group details", err);
+      setError("Failed to load group info.");
+      return;
+    }
+
+    try {
+      const opsRes = await api.get<OperationSummary[]>(
+        `/me/teams/${id}/operations/summary`,
+      );
+      setOperations(opsRes.data.sort((a, b) => b.operationId - a.operationId));
+    } catch (err: any) {
+      console.error("[group] ❌ Failed to fetch operations summary", err);
+      setError("Failed to load operations.");
+      return;
+    }
+
+    try {
+      const summaryRes = await api.get<SummaryTransaction[]>(
+        `/me/teams/${id}/operations/transactions`,
+      );
+      setSummary(summaryRes.data);
+    } catch (err: any) {
+      console.warn("[group] ⚠️ No summary found (likely empty group)");
+      setSummary([]);
+    }
+  };
 
   const handleTransactionClick = (operationId: number) => {
     setSelectedOperationId(operationId);
@@ -58,40 +93,6 @@ const GroupDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-
-    const fetchData = async () => {
-      try {
-        const groupRes = await api.get(`/me/teams/${id}`);
-        setGroupName(groupRes.data.teamName);
-        setMembers(groupRes.data.members);
-      } catch (err: any) {
-        console.error("[group] ❌ Failed to fetch group details", err);
-        setError("Failed to load group info.");
-        return;
-      }
-
-      try {
-        const opsRes = await api.get<OperationSummary[]>(
-          `/me/teams/${id}/operations/summary`,
-        );
-        setOperations(opsRes.data);
-      } catch (err: any) {
-        console.error("[group] ❌ Failed to fetch operations summary", err);
-        setError("Failed to load operations.");
-        return;
-      }
-
-      try {
-        const summaryRes = await api.get<SummaryTransaction[]>(
-          `/me/teams/${id}/operations/transactions`,
-        );
-        setSummary(summaryRes.data);
-      } catch (err: any) {
-        console.warn("[group] ⚠️ No summary found (likely empty group)");
-        setSummary([]);
-      }
-    };
-
     fetchData();
   }, [id, navigate]);
 
@@ -101,20 +102,38 @@ const GroupDetailsPage: React.FC = () => {
     <div className={styles.wrapper}>
       <div className={styles.headerRow}>
         <h1 className={styles.groupName}>{groupName}</h1>
-        <div
-          className={styles["addButton"]}
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            handleAddOpertaionClick(true);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
+        <div className={styles.actions}>
+          <div
+            className={styles["addButton"]}
+            role="button"
+            tabIndex={0}
+            onClick={() => {
               handleAddOpertaionClick(true);
-            }
-          }}
-        >
-          <FontAwesomeIcon icon={faPlus} className={styles.icon} />
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleAddOpertaionClick(true);
+              }
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} className={styles.icon} />
+          </div>
+
+          <div
+            className={styles["addButton"]}
+            role="button"
+            tabIndex={1}
+            onClick={() => {
+              setSummaryOperation(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSummaryOperation(true);
+              }
+            }}
+          >
+            <FontAwesomeIcon icon={faChartSimple} className={styles.icon} />
+          </div>
         </div>
       </div>
 
@@ -138,7 +157,7 @@ const GroupDetailsPage: React.FC = () => {
           <p key={index}>
             {tx.fromFirstName} {tx.fromLastName} ➜ {tx.toFirstName}{" "}
             {tx.toLastName}:{" "}
-            <span style={{ color: "#e2fb89" }}>
+            <span className={styles.spanColor}>
               {tx.amount.toFixed(2)} {}
             </span>
           </p>
@@ -188,8 +207,19 @@ const GroupDetailsPage: React.FC = () => {
         <AddOperationOverlay
           teamId={id}
           visible={addingOperation}
-          onClose={() => setAddingOperation(false)}
+          onClose={() => {
+            fetchData();
+            setAddingOperation(false);
+          }}
           participants={members}
+        />
+      )}
+
+      {summaryOperation && id && (
+        <SummaryOverlay
+          teamId={id}
+          visible={summaryOperation}
+          onClose={() => setSummaryOperation(false)}
         />
       )}
     </div>

@@ -19,7 +19,7 @@
 .subText {
   font-size: 1.2rem;
   font-weight: bold;
-  color: var(--accent-color, #e2f989);
+  color: var(--accent-color-rgb, #e2f989);
 }
 
 .actions {
@@ -31,8 +31,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(var(--text-color-rgb), 0.1);
   display: flex;
+  color: var(--accent-color);
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -40,7 +41,7 @@
 }
 
 .icon-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(var(--text-color-rgb), 0.2);
 }
 
 .icon {
@@ -57,17 +58,17 @@
 }
 
 .groups-square {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(var(--text-color-rgb), 0.05);
   border-radius: 16px;
   padding: 1rem;
   cursor: pointer;
   transition: transform 0.2s ease;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 8px rgba(var(--text-color-rgb), 0.05);
 }
 
 .groups-square:hover {
   transform: translateY(-2px);
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(var(--text-color-rgb), 0.08);
 }
 
 .groups-simple-text {
@@ -104,7 +105,7 @@
   justify-content: center;
   font-weight: 600;
   font-size: 0.9rem;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 4px rgba(var(--background-color-rgb), 0.2);
 }
 
 @media (min-width: 500px) {
@@ -124,8 +125,8 @@
 
 .footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(var(--text-color-rgb) 0.1);
+  background-color: rgba(var(--text-color-rgb), 0.03);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -141,7 +142,7 @@
 }
 
 .footer:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(var(--text-color-rgb), 0.08);
   transform: scale(1.01);
 }
 .footerLeft {
@@ -168,7 +169,7 @@
 }
 
 .footerTitle {
-  color: #fff;
+  color: var(--text-color);
   font-weight: 600;
   font-size: 1rem;
   overflow: hidden;
@@ -183,7 +184,7 @@
 .footerAmount {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-color);
   white-space: nowrap;
   flex-shrink: 0;
 }

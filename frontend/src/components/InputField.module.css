@@ -5,7 +5,7 @@
   max-width: var(--input-width, 520px);
   max-width: none;
   font-family: var(--font-family, sans-serif);
-  border: 1px solid white;
+  border: 1px solid var(--text-color);
   border-radius: 12px;
   box-sizing: border-box;
   background-color: var(--background-color, #0e0e0e);

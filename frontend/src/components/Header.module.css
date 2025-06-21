@@ -4,31 +4,49 @@
   align-items: center;
   box-sizing: border-box;
   padding: 9px;
-  background-color: #0e0e0e;
+  background-color: var(--background-color);
   height: 75px;
   width: 100%;
-  color: white;
-  border-bottom: 2px solid #fff;
+  color: var(--text-color);
+  border-bottom: 2px solid var(--text-color);
   z-index: 10;
-
+  font-family: "Roboto", sans-serif;
   position: relative;
 }
 
-.headerLogo {
-  margin: 0;
-  font-size: 1.8em;
-  font-family: "Roboto", sans-serif;
-}
-
 .headerLogoLink {
-  color: white;
+  color: var(--text-color);
   text-decoration: none;
   transition: opacity 0.3s ease;
+}
+.logoWrapper {
+  display: flex;
+  max-height: 70px;
+  align-items: center;
+  transition: ease-in-out 0.5s;
+}
+
+.logoWrapper:hover {
+  transform: scale(1.05);
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  gap: 12px;
+}
+
+.logoImage {
+  height: 75px;
+  width: auto;
+  object-fit: contain;
 }
 
 .headerLogoLink:hover {
   opacity: 0.6;
-  color: #e2f989;
+  color: var(--accent-color);
 }
 
 .headerMenuIcon {
@@ -42,7 +60,7 @@
 .headerMenuLine {
   width: 25px;
   height: 3px;
-  background-color: white;
+  background-color: var(--accent-color);
   margin: 4px 0;
   transition: 0.3s;
 }
@@ -65,7 +83,7 @@
     position: absolute;
     top: 75px;
     width: 100%;
-    background-color: #0e0e0e;
+    background-color: var(--background-color);
     padding: 10px 0;
     text-align: center;
     gap: 15px;
@@ -92,8 +110,13 @@
 
 .headerNavLink {
   text-decoration: none;
-  color: white;
-  background-image: linear-gradient(to right, #e2f989, #e2f989 50%, #fff 50%);
+  color: var(--text-color);
+  background-image: linear-gradient(
+    to right,
+    var(--accent-color),
+    var(--accent-color) 50%,
+    var(--text-color) 50%
+  );
   background-size: 200% 100%;
   background-position: -100%;
   display: inline-block;
@@ -109,7 +132,7 @@
 
 .headerNavLink:before {
   content: "";
-  background: #e2f989;
+  background: var(--accent-color);
   display: block;
   position: absolute;
   bottom: -3px;
@@ -124,5 +147,46 @@
 }
 
 .headerNavLink:hover::before {
+  width: 100%;
+}
+
+.logoText {
+  text-decoration: none;
+  background-image: linear-gradient(
+    to right,
+    var(--accent-color),
+    var(--accent-color) 50%,
+    var(--text-color) 50%
+  );
+  background-size: 200% 100%;
+  background-position: -100%;
+  display: inline-block;
+  padding: 5px 0;
+  position: relative;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease-in-out;
+  font-size: 1.8em;
+  font-family: "ClashDisplay-Regular", sans-serif;
+}
+
+.logoText::before {
+  content: "";
+  background: var(--accent-color);
+  display: block;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+.logoText:hover {
+  background-position: 0;
+}
+
+.logoText:hover::before {
   width: 100%;
 }
