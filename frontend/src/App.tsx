@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GroupsPage from "./pages/groups/GroupsPage";
 import GroupDetailsPage from "./pages/groups/GroupDetailsPage";
 import { ThemeProvider } from "./context/ThemeProvider";
+import AboutPage from "./pages/AboutPage";
 function App() {
   return (
     <ThemeProvider>
@@ -18,7 +19,7 @@ function App() {
           <Routes>
             <Route path="/" element={<PageLayout />}>
               <Route index element={<HomePage />} />
-              <Route path="/about" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
 
               <Route
                 path="/groups"
