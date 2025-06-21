@@ -172,19 +172,19 @@ public class TeamServiceTest {
         List<OperationParticipantDTO> participants = new ArrayList<>();
         OperationParticipantDTO participant1 = new OperationParticipantDTO();
         participant1.setPersonId("1");
-        participant1.setPaidAmount("50");
+        participant1.setOwedAmount("50");
         participants.add(participant1);
 
         OperationParticipantDTO participant2 = new OperationParticipantDTO();
         participant2.setPersonId("2");
-        participant2.setPaidAmount("50");
+        participant2.setOwedAmount("50");
         participants.add(participant2);
 
         operationRequestDTO = new TeamOperationRequestDTO();
         operationRequestDTO.setTitle("New Operation");
         operationRequestDTO.setDescription("New Description");
         operationRequestDTO.setTotalAmount("100");
-        operationRequestDTO.setCategoryId("1");
+        operationRequestDTO.setCategoryName("1");
         operationRequestDTO.setCurrencyCode("USD");
         operationRequestDTO.setOperationType("expense");
         operationRequestDTO.setParticipants(participants);
