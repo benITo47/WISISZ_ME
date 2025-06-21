@@ -1,0 +1,175 @@
+.wrapper {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 100%;
+  min-width: 50dvw;
+  margin: 0 auto;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  box-sizing: border-box;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.groupName {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.spanColor {
+  color: var(--accent-color);
+}
+
+.addButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(var(--text-color-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--accent-color);
+  border: none;
+}
+
+.addButton:hover {
+  background-color: rgba(var(--text-color-rgb), 0.2);
+}
+
+.members {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: default;
+}
+
+.summaryBox {
+  background-color: rgba(var(--text-color-rgb), 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.transactionList {
+  max-height: 60dvh;
+  overflow-y: auto;
+  background-color: rgba(var(--text-color-rgb), 0.03);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  scroll-behavior: smooth;
+}
+
+.transactionItem {
+  padding: 1rem;
+  border-top: 1px solid rgba(var(--text-color-rgb), 0.1);
+  background-color: rgba(var(--text-color-rgb), 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  flex-wrap: wrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+  margin-bottom: 0.5rem;
+}
+
+.transactionItem:hover {
+  background-color: rgba(var(--text-color-rgb), 0.08);
+  transform: scale(1.01);
+}
+
+.footerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.footerTopRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footerIcon {
+  font-size: 1.2rem;
+  color: var(--accent-color, #e2f989);
+  flex-shrink: 0;
+}
+
+.footerTitle {
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footerSubText {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.footerAmount {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .wrapper {
+    max-width: 600px;
+  }
+
+  .groupName {
+    font-size: 1.6rem;
+  }
+
+  .circle {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+}

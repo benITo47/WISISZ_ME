@@ -2,13 +2,13 @@ package me.wisisz.dto;
 
 public class OperationParticipantDTO {
     private String personId;
-    private String paidAmount;
+    private String owedAmount;
 
 
     public String getPersonId() {return personId;}
     public void setPersonId(String personId) {this.personId = personId;}
 
-    public String getPaidAmount() {return paidAmount;}
-    public void setPaidAmount(String paidAmount) {this.paidAmount = paidAmount;}
+    public String getOwedAmount() {return owedAmount;}
+    public void setOwedAmount(String owedAmount) {this.owedAmount = owedAmount;}
 }
 

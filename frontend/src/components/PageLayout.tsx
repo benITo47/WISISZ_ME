@@ -8,7 +8,6 @@ type NavLink = {
 };
 
 const navLinks: NavLink[] = [
-  { name: "wallet", path: "/wallet" },
   { name: "my groups", path: "/groups" },
   { name: "about", path: "/about" },
   { name: "account", path: "/account" },
@@ -32,4 +31,3 @@ export default function PageLayout() {
     </main>
   );
 }
-

@@ -1,11 +1,15 @@
 import React from "react";
-import Container from "../components/Container";
+import Container from "../../components/Container";
 import Button from "../components/Button";
-import { useAuth } from "../context/AuthProvider";// Zakładam, że masz taki kontekst
+import { useAuth } from "../context/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeProvider";
+
+import styles from "./AccountPage.module.css";
 
 const AccountPage: React.FC = () => {
   const { user, logOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,25 +18,26 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <Container style={{ marginTop: "50px", padding: "2rem", maxWidth: "500px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "2rem", color: "#e2f989" }}>
-        Moje Konto
-      </h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>Moje Konto</h2>
 
-      <div style={{ marginBottom: "1rem", fontSize: "18px" }}>
+      <div className={styles.info}>
         <strong>Imię:</strong> {user?.fname || "Nie podano"}
       </div>
-      <div style={{ marginBottom: "1rem", fontSize: "18px" }}>
+      <div className={styles.info}>
         <strong>Nazwisko:</strong> {user?.lname || "Nie podano"}
       </div>
-      <div style={{ marginBottom: "2rem", fontSize: "18px" }}>
+      <div className={styles.info}>
         <strong>Email:</strong> {user?.emailAddr || "Nie podano"}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div className={styles.actions}>
         <Button onClick={handleLogout}>Wyloguj się</Button>
+        <Button onClick={toggleTheme}>
+          {theme === "dark" ? "🌞 Light Mode" : "🌙 Dark Mode"}
+        </Button>
       </div>
-    </Container>
+    </div>
   );
 };
 

@@ -2,10 +2,12 @@
   position: relative;
   width: 100%;
   height: fit-content;
-  max-width: var(--input-width, 320px);
+  max-width: var(--input-width, 520px);
+  max-width: none;
   font-family: var(--font-family, sans-serif);
-  border: 1px solid white;
+  border: 1px solid var(--text-color);
   border-radius: 12px;
+  box-sizing: border-box;
   background-color: var(--background-color, #0e0e0e);
 }
 
@@ -72,7 +74,6 @@
   background-color: transparent;
 }
 
-/* animated bottom border */
 .floatingLabel::after {
   content: "";
   position: absolute;
@@ -86,14 +87,17 @@
   transition: transform 0.3s ease;
 }
 
-/* Error message */
 .errorWrapper {
-  min-height: 18px;
-  padding-left: 4px;
-  margin-bottom: 4px;
+  max-width: 100%;
+  width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .errorMessage {
-  color: #ff6b6b;
-  font-size: 12px;
+  display: block;
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  padding-left: 10px;
+  width: 100%;
 }
