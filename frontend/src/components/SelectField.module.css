@@ -1,0 +1,26 @@
+.selectContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.selectField {
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--text-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.selectField:focus {
+  border-color: var(--accent-color);
+}

@@ -19,11 +19,12 @@ export default function Header({ logoUrl, logoText, navLinks }: HeaderProps) {
 
   return (
     <header className={styles.headerContainer}>
-      <h1 className={styles.headerLogo}>
-        <Link to={logoUrl} onClick={closeMenu} className={styles.headerLogoLink}>
-          {logoText}
+      <div className={styles.logoWrapper}>
+        <Link to={logoUrl} className={styles.logoLink} onClick={closeMenu}>
+          <img src="/wisiszlogo.png" alt="Logo" className={styles.logoImage} />
+          <span className={styles.logoText}>{logoText}</span>
         </Link>
-      </h1>
+      </div>
 
       <button className={styles.headerMenuIcon} onClick={toggleMenu}>
         <span className={styles.headerMenuLine}></span>
@@ -33,7 +34,12 @@ export default function Header({ logoUrl, logoText, navLinks }: HeaderProps) {
 
       <nav className={styles.headerNavigation} data-open={isMenuOpen}>
         {navLinks.map(({ name, path }, index) => (
-          <Link key={index} to={path} className={styles.headerNavLink} onClick={closeMenu}>
+          <Link
+            key={index}
+            to={path}
+            className={styles.headerNavLink}
+            onClick={closeMenu}
+          >
             {name}
           </Link>
         ))}

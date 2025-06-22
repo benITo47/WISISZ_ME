@@ -1,12 +1,26 @@
-@import "tailwindcss";
 :root {
   font-family: Roboto, sans-serif;
   line-height: 1.5;
+  --background-color: #0e0e0e;
+  --text-color: #efefef;
+  --accent-color: #e2f989;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --border-color: #ededed;
+
+  /* RGB versions */
+  --background-color-rgb: 14, 14, 14;
+  --text-color-rgb: 239, 239, 239;
+  --accent-color-rgb: 226, 249, 137;
+  --success-color-rgb: 40, 167, 69;
+  --danger-color-rgb: 220, 53, 69;
+  --border-color-rgb: 237, 237, 237;
   font-weight: 400;
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0e0e0e;
+  color: var(--text-color);
+  background-color: var(--background-color);
   font-synthesis: none;
+  box-sizing: border-box;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -32,15 +46,29 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+:root[data-theme="light"] {
+  --background-color: #ffffff;
+  --text-color: #020202;
+  --accent-color: #747bff;
+
+  --background-color-rgb: 255, 255, 255;
+  --text-color-rgb: 2, 2, 2;
+  --accent-color-rgb: 116, 123, 255;
 }
+
+:root[data-theme="light"] button {
+  background-color: #f9f9f9;
+}
+
+/* @media (prefers-color-scheme: light) { */
+/*   :root { */
+/*     color: #213547; */
+/*     background-color: #ffffff; */
+/*   } */
+/*   a:hover { */
+/*     color: #747bff; */
+/*   } */
+/*   button { */
+/*     background-color: #f9f9f9; */
+/*   } */
+/* } */

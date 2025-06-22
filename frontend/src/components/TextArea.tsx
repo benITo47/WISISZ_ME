@@ -1,35 +1,42 @@
 import React from "react";
 import styles from "./InputField.module.css";
 
-interface InputFieldProps {
+interface TextAreaFieldProps {
   value: string;
   onChange: (value: string) => void;
   validator?: (input: string) => boolean;
   errorMessage?: string;
   placeholder?: string;
-  type?: string;
   name?: string;
   className?: string;
   showLabel?: boolean;
   required?: boolean;
+  rows?: number;
+  maxLength?: number;
 }
 
-const InputField: React.FC<InputFieldProps> = ({
+const TextAreaField: React.FC<TextAreaFieldProps> = ({
   value,
   onChange,
   validator,
   errorMessage = "Invalid input",
   placeholder = "Enter text...",
-  type = "text",
   name,
   className = "",
   showLabel = true,
   required = false,
+  rows = 3,
+  maxLength = 250,
 }) => {
   const [error, setError] = React.useState("");
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
+
+    const newLinesCount = (newValue.match(/\n/g) || []).length;
+    if (maxLength && newValue.length > maxLength) return;
+    if (newLinesCount >= rows) return;
+
     onChange(newValue);
 
     if (validator && !validator(newValue)) {
@@ -45,14 +52,20 @@ const InputField: React.FC<InputFieldProps> = ({
   return (
     <>
       <div className={`${styles.inputContainer} ${className}`}>
-        <input
+        <textarea
           id={inputId}
-          type={type}
           name={name}
           value={value}
           onChange={handleChange}
           className={styles.inputField}
           required={required}
+          rows={rows}
+          style={{
+            resize: "none",
+            overflow: "hidden",
+            height: `${rows * 1.5}em`, // 1.5em line-height x ilość wierszy
+          }}
+          maxLength={maxLength}
         />
         {showLabel && (
           <label
@@ -71,4 +84,4 @@ const InputField: React.FC<InputFieldProps> = ({
   );
 };
 
-export default InputField;
+export default TextAreaField;

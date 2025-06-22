@@ -64,7 +64,7 @@ const Button: React.FC<ButtonProps> = ({
     return (
       <Link
         to={disabled ? "#" : to}
-        className={`custom-button ${className}`}
+        className={`${className}`}
         style={combinedStyle}
         onMouseEnter={() => !disabled && setIsHovered(true)}
         onMouseLeave={() => !disabled && setIsHovered(false)}
@@ -78,9 +78,9 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       onClick={disabled ? undefined : onClick}
-      className={`custom-button ${className}`}
       style={combinedStyle}
       disabled={disabled}
+      className={`custom-button ${className}`}
       onMouseEnter={() => !disabled && setIsHovered(true)}
       onMouseLeave={() => !disabled && setIsHovered(false)}
     >
@@ -90,4 +90,3 @@ const Button: React.FC<ButtonProps> = ({
 };
 
 export default Button;
-
