@@ -19,20 +19,20 @@ const AccountPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Moje Konto</h2>
+      <h2 className={styles.title}>My account</h2>
 
       <div className={styles.info}>
-        <strong>Imię:</strong> {user?.fname || "Nie podano"}
+        <strong>Name:</strong> {user?.fname || "Nie podano"}
       </div>
       <div className={styles.info}>
-        <strong>Nazwisko:</strong> {user?.lname || "Nie podano"}
+        <strong>Surname:</strong> {user?.lname || "Nie podano"}
       </div>
       <div className={styles.info}>
         <strong>Email:</strong> {user?.emailAddr || "Nie podano"}
       </div>
 
       <div className={styles.actions}>
-        <Button onClick={handleLogout}>Wyloguj się</Button>
+        <Button onClick={handleLogout}>Log out</Button>
         <Button onClick={toggleTheme}>
           {theme === "dark" ? "🌞 Light Mode" : "🌙 Dark Mode"}
         </Button>

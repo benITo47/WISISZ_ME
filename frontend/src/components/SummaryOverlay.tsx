@@ -39,17 +39,16 @@ const DARK_COLORS = [
 ];
 
 const LIGHT_COLORS = [
-  "#14523f",
-  "#c84d28",
-  "#2e5c86",
-  "#6a4c85",
-  "#3e7341",
-  "#935226",
-  "#9e2a66",
-  "#993c3c",
-  "#145e67",
+  "#ffc107",
+  "#ff6f91",
+  "#66d9b3",
+  "#ffa94d",
+  "#8cff66",
+  "#38bdf8",
+  "#ff7a7a",
+  "#5aa2ff",
+  "#b28dff",
 ];
-
 const SummaryOverlay: React.FC<SummaryOverlayProps> = ({
   teamId,
   visible,
@@ -106,7 +105,7 @@ const SummaryOverlay: React.FC<SummaryOverlayProps> = ({
               Total spent: {data.totalAmount} PLN
             </div>
 
-            <div style={{ width: "100%", height: 350 }}>
+            <div style={{ width: "100%", height: 400, padding: "5px" }}>
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
