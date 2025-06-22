@@ -428,7 +428,11 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
         />
 
         <div className={styles.modalButtons}>
-          <Button className={styles.cancel} onClick={onClose}>
+          <Button
+            className={styles.cancel}
+            style={{ backgroundColor: "rgba(220,11,11,0.5)" }}
+            onClick={onClose}
+          >
             Cancel
           </Button>
           <Button

@@ -40,6 +40,7 @@ const GroupDetailsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [groupName, setGroupName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [summary, setSummary] = useState<SummaryTransaction[]>([]);
   const [operations, setOperations] = useState<OperationSummary[]>([]);
@@ -55,6 +56,7 @@ const GroupDetailsPage: React.FC = () => {
       const groupRes = await api.get(`/me/teams/${id}`);
       setGroupName(groupRes.data.teamName);
       setMembers(groupRes.data.members);
+      setInviteCode(groupRes.data.inviteCode);
     } catch (err: any) {
       console.error("[group] ❌ Failed to fetch group details", err);
       setError("Failed to load group info.");
@@ -151,6 +153,11 @@ const GroupDetailsPage: React.FC = () => {
 
       <div className={styles.summaryBox}>
         <p>
+          <strong>
+            Invite code: <span className={styles.spanColor}>{inviteCode}</span>
+          </strong>
+        </p>
+        <p>
           <strong>Balance summary:</strong>
         </p>
         {summary.map((tx, index) => (
@@ -199,7 +206,11 @@ const GroupDetailsPage: React.FC = () => {
           teamId={id}
           operationId={selectedOperationId}
           visible={selectedOperationId !== null}
-          onClose={() => setSelectedOperationId(null)}
+          onClose={() => {
+            setSelectedOperationId(null);
+            fetchData();
+          }}
+          canDelete={true}
         />
       )}
 

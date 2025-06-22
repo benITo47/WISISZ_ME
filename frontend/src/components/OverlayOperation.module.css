@@ -5,8 +5,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  backdrop-filter: blur(6px);
   padding: 1rem;
-  z-index: 9999;
+  z-index: 99;
 }
 
 .modal {
@@ -123,7 +124,8 @@
 
 .modalButtons {
   display: flex;
-  justify-content: flex-end;
+  gap: 1rem;
+  justify-content: space-between;
   margin-top: 1rem;
 }
 
