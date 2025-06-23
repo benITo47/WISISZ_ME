@@ -7,7 +7,7 @@ import SelectField from "./SelectField";
 import api from "../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
-import { CategoryMap } from "../utils/categories";
+import { CategoryKey, CategoryMap } from "../utils/categories";
 import { useTheme } from "../context/ThemeProvider";
 
 interface Participant {
@@ -23,7 +23,6 @@ interface AddOperationOverlayProps {
   visible: boolean;
   onClose: () => void;
   participants: Participant[];
-  currencyCode: string;
 }
 
 const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
@@ -31,7 +30,6 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   visible,
   onClose,
   participants,
-  currencyCode = "PLN",
 }) => {
   const [title, setTitle] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
@@ -47,7 +45,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const categoryOptions = Object.entries(CategoryMap).map(
     ([key, category]) => ({
       value: key,
@@ -110,7 +108,7 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
 
     const result: Record<number, number> = {};
     let runningSum = 0;
-    selectedParticipants.forEach((p, i) => {
+    selectedParticipants.forEach((p) => {
       const fixed = +(fixedAmounts[p.personId] ?? 0);
       const share = +(shares[p.personId] ?? 0);
 
@@ -210,13 +208,12 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
       return;
     }
 
-    const category_dummy = 1;
     setLoading(true);
     try {
       const payload = {
         title,
         totalAmount: parseFloat(totalAmount),
-        categoryName: CategoryMap[category].label,
+        categoryName: CategoryMap[category as CategoryKey].label,
         currencyCode: "USD",
         description,
         operationType: "expense",
@@ -276,9 +273,8 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
               return (
                 <div
                   key={p.personId}
-                  className={`${styles.participantCircleWrapper} ${
-                    selected ? styles.selectedWrapper : ""
-                  }`}
+                  className={`${styles.participantCircleWrapper} ${selected ? styles.selectedWrapper : ""
+                    }`}
                   onClick={() => toggleParticipant(p)}
                   title={`${p.fname} ${p.lname}`}
                   tabIndex={0}
@@ -398,7 +394,6 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
                         }}
                         placeholder="Amount"
                         type="number"
-                        step="any"
                         className={`${styles.fixedAmountInput} ${fixed < 0 ? styles.negative : ""}`}
                       />
                     )}
@@ -423,7 +418,6 @@ const AddOperationOverlay: React.FC<AddOperationOverlayProps> = ({
           onChange={setDescription}
           placeholder="Description"
           rows={3}
-          maxRows={3}
           maxLength={300}
         />
 

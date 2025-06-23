@@ -89,7 +89,7 @@ const GroupDetailsPage: React.FC = () => {
     setSelectedOperationId(operationId);
   };
 
-  const handleAddOpertaionClick = (isAdding: bool) => {
+  const handleAddOpertaionClick = (isAdding: boolean) => {
     setAddingOperation(isAdding);
   };
 

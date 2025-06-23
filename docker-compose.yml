@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wisisz-api
+    ports:
+      - "9229:8080"  
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wisisz-frontend
+    ports:
+      - "9119:5173" 
+    env_file:
+      - ./frontend/.env
+    restart: unless-stopped
+

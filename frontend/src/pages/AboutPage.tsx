@@ -4,7 +4,6 @@ import {
   faScaleBalanced,
   faCoins,
   faHandshake,
-  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import styles from "./AboutPage.module.css";
 

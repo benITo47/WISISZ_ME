@@ -8,7 +8,6 @@ import { CategoryMap, CategoryKey } from "../../utils/categories";
 import {
   faPlus,
   faEnvelope,
-  faMoneyBill,
 } from "@fortawesome/free-solid-svg-icons";
 import Overlay from "../../components/Overlay";
 
@@ -209,6 +208,7 @@ const GroupsPage: React.FC = () => {
                 setSelectedOpId(null);
                 setSelectedGroupId(null);
               }}
+              canDelete={false}
             />
           )}
         </>

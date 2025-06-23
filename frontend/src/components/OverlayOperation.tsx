@@ -43,7 +43,6 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
   const [operation, setOperation] = useState<OperationDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editMode, setEditMode] = useState(false);
   const [showDeleteOverlay, setShowDeleteOverlay] = useState(false);
   const { user } = useAuth();
 
@@ -79,12 +78,9 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
 
       setShowDeleteOverlay(false);
       onClose();
-    } catch (error) {}
+    } catch (error) { }
   };
 
-  const toggleEdit = () => {
-    setEditMode((prev) => !prev);
-  };
 
   if (!visible) return null;
 
@@ -106,66 +102,62 @@ const OverlayOperation: React.FC<OverlayOperationProps> = ({
             <p className={styles.error}>{error}</p>
           ) : operation ? (
             <>
-              {editMode ? (
-                <p className={styles.editPlaceholder}>
-                  🛠 Edit mode coming soon...
+              (
+              <>
+                <div className={styles.header}>
+                  <FontAwesomeIcon
+                    icon={category.icon}
+                    className={styles.icon}
+                  />
+                  <h2>{operation.title}</h2>
+                </div>
+
+                <p className={styles.date}>
+                  {new Date(operation.operationDate).toLocaleString("en-GB")}
                 </p>
-              ) : (
-                <>
-                  <div className={styles.header}>
-                    <FontAwesomeIcon
-                      icon={category.icon}
-                      className={styles.icon}
-                    />
-                    <h2>{operation.title}</h2>
-                  </div>
 
-                  <p className={styles.date}>
-                    {new Date(operation.operationDate).toLocaleString("en-GB")}
+                <p className={styles.description}>
+                  {operation.description || "No description provided."}
+                </p>
+
+                <p className={styles.total}>
+                  <strong>Total:</strong>{" "}
+                  {parseFloat(operation.totalAmount).toFixed(2)} zł
+                </p>
+
+                {payer && (
+                  <p className={styles.payer}>
+                    <strong>Paid by:</strong> {payer.fname} {payer.lname} -{" "}
+                    {parseFloat(operation.totalAmount).toFixed(2)} PLN
                   </p>
+                )}
 
-                  <p className={styles.description}>
-                    {operation.description || "No description provided."}
-                  </p>
-
-                  <p className={styles.total}>
-                    <strong>Total:</strong>{" "}
-                    {parseFloat(operation.totalAmount).toFixed(2)} zł
-                  </p>
-
-                  {payer && (
-                    <p className={styles.payer}>
-                      <strong>Paid by:</strong> {payer.fname} {payer.lname} -{" "}
-                      {parseFloat(operation.totalAmount).toFixed(2)} PLN
-                    </p>
-                  )}
-
-                  <div className={styles.participants}>
-                    <strong>Participants & Balances:</strong>
-                    <ul>
-                      {operation.participants.map((p) => (
-                        <li key={p.personId} className={styles.participantItem}>
-                          <span>
-                            {p.fname} {p.lname} ({p.emailAddr})
-                          </span>
-                          <span
-                            className={
-                              p.paidAmount > 0
-                                ? styles.balancePositive
-                                : p.paidAmount < 0
-                                  ? styles.balanceNegative
-                                  : styles.balanceZero
-                            }
-                          >
-                            {p.paidAmount > 0 && "+"}
-                            {p.paidAmount.toFixed(2)} PLN
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              )}
+                <div className={styles.participants}>
+                  <strong>Participants & Balances:</strong>
+                  <ul>
+                    {operation.participants.map((p) => (
+                      <li key={p.personId} className={styles.participantItem}>
+                        <span>
+                          {p.fname} {p.lname} ({p.emailAddr})
+                        </span>
+                        <span
+                          className={
+                            p.paidAmount > 0
+                              ? styles.balancePositive
+                              : p.paidAmount < 0
+                                ? styles.balanceNegative
+                                : styles.balanceZero
+                          }
+                        >
+                          {p.paidAmount > 0 && "+"}
+                          {p.paidAmount.toFixed(2)} PLN
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+              )
             </>
           ) : (
             <p>No data available to display.</p>

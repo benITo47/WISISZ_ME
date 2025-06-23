@@ -122,6 +122,8 @@ const SummaryOverlay: React.FC<SummaryOverlayProps> = ({
                     label
                     isAnimationActive
                   >
+                    {/*
+                      //@ts-ignore */}
                     {chartData?.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -150,6 +152,8 @@ const SummaryOverlay: React.FC<SummaryOverlayProps> = ({
                   </tr>
                 </thead>
                 <tbody>
+                  {/*
+                      //@ts-ignore */}
                   {chartData.map((entry) => (
                     <tr key={entry.rawKey}>
                       <td>
